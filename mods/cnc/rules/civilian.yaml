@@ -415,24 +415,22 @@ VICE:
 	Armor:
 		Type: Wood
 	RevealsShroud:
-		Range: 4
+		Range: 6
 	Mobile:
 		Speed: 5
 		TerrainSpeeds:
-			Clear: 90
-			Rough: 80
-			Road: 100
-			Tiberium: 70
-			BlueTiberium: 70
-			Beach: 80
+			Clear: 70
+			Rough: 60
+			Road: 70
+			Tiberium: 100
+			BlueTiberium: 100
+			Beach: 60
 	Selectable:
-		Voice: GenericVoice
+		Voice: DinoVoice
 	TargetableUnit:
 		TargetTypes: Ground
 	AutoTarget:
-		ScanRadius: 4
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
+		ScanRadius: 5
 	AttackMove:
 	HiddenUnderFog:
 	GainsExperience:
@@ -443,7 +441,17 @@ VICE:
 		Name: Viceroid
 	Armament:
 		Weapon: Chemspray
+		LocalOffset: 384,0,0
 	AttackFrontal:
 	AttackWander:
 	RenderUnit:
 	WithMuzzleFlash:
+		SplitFacings: true
+	CombatDebugOverlay:
+	Guard:
+	Guardable:
+	UpdatesPlayerStatistics:
+	BodyOrientation:
+		QuantizedFacings: 8
+	PoisonedByTiberium:
+		Weapon: Heal

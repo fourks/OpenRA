@@ -1,12 +1,23 @@
 CONYARDO:
 	Inherits: ^CONYARD
-	Transforms:
-		IntoActor: mcvo
-		Offset:1,1
-		Facing: 270
 
 PWRO:
 	Inherits: ^POWER
+	Buildable:
+		Owner: ordos
+
+WALLO:
+	Inherits: ^WALL
+	Buildable:
+		Owner: ordos
+
+GUNTOWERO:
+	Inherits: ^GUNTOWER
+	Buildable:
+		Owner: ordos
+
+ROCKETTOWERO:
+	Inherits: ^ROCKETTOWER
 	Buildable:
 		Owner: ordos
 
@@ -19,6 +30,16 @@ REFO:
 
 BARRO:
 	Inherits: ^BARRACKS
+	Buildable:
+		Owner: ordos
+
+REPAIRO:
+	Inherits: ^REPAIR
+	Buildable:
+		Owner: ordos
+
+RESEARCHO:
+	Inherits: ^RESEARCH
 	Buildable:
 		Owner: ordos
 
@@ -61,7 +82,7 @@ PALACEO:
 	Buildable:
 		Owner: ordos
 	AirstrikePower:
-		Image: orniicon
+		Icon: ornistrike
 		Description: Air Strike
 		ChargeTime: 180
 		LongDesc: Ornithopter drops a load of parachuted\nbombs on your target
@@ -76,7 +97,6 @@ MCVO:
 	Inherits: ^MCV
 	Buildable:
 		Owner: ordos
-		BuiltAt: heavyo
 	Transforms:
 		Facing: 16
 		IntoActor: conyardo
@@ -89,17 +109,13 @@ MCVO.starport:
 	Inherits: MCVO
 	Buildable:
 		Queue: Starport
-		BuiltAt: starporto
 	Valued:
 		Cost: 2500
 
 COMBATO:
 	Inherits: ^COMBAT
-	Tooltip:
-		Icon: combatoicon
 	Buildable:
 		Owner: ordos
-		BuiltAt: heavyo
 	RevealsShroud:
 		Range: 8
 	Turreted:
@@ -108,15 +124,14 @@ COMBATO:
 		Speed: 9
 		ROT: 8
 		Crushes: crate, infantry
-	RenderUnitTurreted:
+	RenderUnit:
 		Image: COMBATO
+	WithTurret:
 	LeavesHusk:
 		HuskActor: Combato.Husk
 
 COMBATO.Husk:
 	Inherits: ^COMBAT.Husk
-	Tooltip:
-		Icon: combatoicon
 	RenderUnit:
 		Image: COMBATO
 
@@ -124,75 +139,82 @@ COMBATO.starport:
 	Inherits: COMBATO
 	Buildable:
 		Queue: Starport
-		BuiltAt: starporto
 	Valued:
 		Cost: 875
 
-TRIKEO:
-	Inherits: ^TRIKE
+RAIDER:
+	Inherits: ^Vehicle
 	Buildable:
+		Queue: Vehicle
+		BuildPaletteOrder: 10
+		Hotkey: w
 		Owner: ordos
-		BuiltAt: lighto
 	Valued:
 		Cost: 300
 	Tooltip:
 		Name: Raider Trike
 		Description: Improved Scout\n Strong vs Infantry, Light Vehicles
-		Icon: raidericon
+	Selectable:
+		Bounds: 24,24
 	Health:
 		HP: 110
+	Armor:
+		Type: Light
 	Mobile:
 		ROT: 10
 		Speed: 14
+	RevealsShroud:
+		Range: 7
 	RenderUnit:
-		Image: RAIDER
+	WithMuzzleFlash:
 	Armament:
 		Weapon: HMGo
 		LocalOffset: 256,0,128
 	AttackFrontal:
+	AutoTarget:
+	Explodes:
+		Weapon: UnitExplodeTiny
+		EmptyWeapon: UnitExplodeTiny
 
-STEALTHTRIKE:
-	Inherits: ^TRIKE
+STEALTHRAIDER:
+	Inherits: ^Vehicle
 	Buildable:
+		Queue: Vehicle
 		Prerequisites: Hitech
 		Owner: ordos
-		BuiltAt: lighto
 		BuildPaletteOrder: 30
 	Valued:
 		Cost: 400
 	Tooltip:
 		Name: Stealth Raider Trike
 		Description: Invisible Raider Trike\n Strong vs Infantry, Light Vehicles
-		Icon: raidersicon
+	Selectable:
+		Bounds: 24,24
 	Health:
 		HP: 110
+	Armor:
+		Type: Light
 	Mobile:
 		ROT: 10
 		Speed: 14
+	RevealsShroud:
+		Range: 7
 	RenderUnit:
-		Image: RAIDER
+	WithMuzzleFlash:
 	Armament:
 		Weapon: HMGo
 		LocalOffset: 256,0,128
 	AttackFrontal:
+	Explodes:
+		Weapon: UnitExplodeTiny
+		EmptyWeapon: UnitExplodeTiny
 	Cloak:
 		InitialDelay: 45
 		CloakDelay: 90
-		CloakSound: appear1.aud
-		UncloakSound: appear1.aud
+		CloakSound: STEALTH1.WAV
+		UncloakSound: STEALTH2.WAV
 	AutoTarget:
 		InitialStance: HoldFire
-
-#TRIKEO.starport:
-#	Inherits: ^TRIKE
-#	Buildable:
-#		Queue: Starport
-#		Owner: ordos
-#		BuiltAt: starporto
-#	RenderUnit:
-#		Image: TRIKE
-#	Valued:
-#		Cost: 149
 
 CARRYALLO:
 	Inherits: ^CARRYALL
@@ -210,14 +232,12 @@ DEVIATORTANK:
 		Cost: 1000
 	Tooltip:
 		Name: Deviator
-		Description: Causes no actual damage\nFires a warhead which changes allegiances\n but does not effect buildings or tanks
-		Icon: deviatortankicon
+		Description: Fires a warhead which changes\nthe allegiance of enemy vehicles
 	Buildable:
 		Queue: Armor
 		BuildPaletteOrder: 50
-		Prerequisites: heavyo,research
-#		Owner: ordos
-		BuiltAt: heavyo
+		Prerequisites: heavyo, researcho
+		Owner: ordos
 		Hotkey: d
 	Mobile:
 		ROT: 3
@@ -235,8 +255,6 @@ DEVIATORTANK:
 	AttackLoyalty:
 	AutoTarget:
 		InitialStance: Defend
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Explodes:
 		Weapon: UnitExplodeSmall
 		EmptyWeapon: UnitExplodeSmall
@@ -247,8 +265,6 @@ DEVIATORTANK:
 
 DEVIATORTANK.Husk:
 	Inherits: ^Husk
-	Tooltip:
-		Icon: deviatortankicon
 	RenderUnit:
 		Image: DEVIATORTANK
 
@@ -277,7 +293,5 @@ SABOTEUR:
 	C4Demolition:
 		C4Delay: 45
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true

@@ -8,14 +8,11 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using OpenRA.Effects;
 using OpenRA.FileFormats;
 using OpenRA.Graphics;
-using OpenRA.Mods.RA.Move;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA
@@ -67,14 +64,10 @@ namespace OpenRA.Mods.RA
 		}
 	}
 
-	class Bridge: IRenderAsTerrain, INotifyDamageStateChanged
+	class Bridge: IRender, INotifyDamageStateChanged
 	{
-		static string cachedTileset;
-		static Cache<TileReference<ushort,byte>, Sprite> sprites;
-
-		Dictionary<ushort, Dictionary<CPos, Sprite>> TileSprites = new Dictionary<ushort, Dictionary<CPos, Sprite>>();
-		Dictionary<ushort, TileTemplate> Templates = new Dictionary<ushort, TileTemplate>();
-		ushort currentTemplate;
+		ushort template;
+		Dictionary<CPos, byte> footprint;
 
 		Actor self;
 		BridgeInfo Info;
@@ -91,38 +84,21 @@ namespace OpenRA.Mods.RA
 			this.Type = self.Info.Name;
 		}
 
-		public void Create(ushort template, Dictionary<CPos, byte> subtiles)
+		public void Create(ushort template, Dictionary<CPos, byte> footprint)
 		{
-			currentTemplate = template;
-
-			// Create a new cache to store the tile data
-			if (cachedTileset != self.World.Map.Tileset)
-			{
-				cachedTileset = self.World.Map.Tileset;
-				sprites = new Cache<TileReference<ushort,byte>, Sprite>(
-				x => Game.modData.SheetBuilder.Add(self.World.TileSet.GetBytes(x),
-					new Size(Game.CellSize, Game.CellSize)));
-			}
-
-			// Cache templates and tiles for the different states
-			foreach (var t in Info.Templates)
-			{
-				Templates.Add(t.First,self.World.TileSet.Templates[t.First]);
-				TileSprites.Add(t.First, subtiles.ToDictionary(
-					a => a.Key,
-					a => sprites[new TileReference<ushort,byte>(t.First, (byte)a.Value)]));
-			}
+			this.template = template;
+			this.footprint = footprint;
 
 			// Set the initial custom terrain types
-			foreach (var c in TileSprites[currentTemplate].Keys)
+			foreach (var c in footprint.Keys)
 				self.World.Map.CustomTerrain[c.X, c.Y] = GetTerrainType(c);
 		}
 
-		public string GetTerrainType(CPos cell)
+		string GetTerrainType(CPos cell)
 		{
 			var dx = cell - self.Location;
-			var index = dx.X + Templates[currentTemplate].Size.X * dx.Y;
-			return self.World.TileSet.GetTerrainType(new TileReference<ushort, byte>(currentTemplate,(byte)index));
+			var index = dx.X + self.World.TileSet.Templates[template].Size.X * dx.Y;
+			return self.World.TileSet.GetTerrainType(new TileReference<ushort, byte>(template, (byte)index));
 		}
 
 		public void LinkNeighbouringBridges(World world, BridgeLayer bridges)
@@ -136,29 +112,41 @@ namespace OpenRA.Mods.RA
 
 		public Bridge GetNeighbor(int[] offset, BridgeLayer bridges)
 		{
-			if (offset == null) return null;
+			if (offset == null)
+				return null;
+
 			return bridges.GetBridge(self.Location + new CVec(offset[0], offset[1]));
 		}
 
-		bool initializePalettes = true;
-		PaletteReference terrainPalette;
-		public IEnumerable<Renderable> RenderAsTerrain(WorldRenderer wr, Actor self)
+		IRenderable[] TemplateRenderables(WorldRenderer wr, PaletteReference palette, ushort template)
 		{
-			if (initializePalettes)
+			return footprint.Select(c => (IRenderable)(new SpriteRenderable(
+				wr.Theater.TileSprite(new TileReference<ushort, byte>(template, c.Value)),
+				c.Key.CenterPosition, WVec.Zero, -512, palette, 1f, true))).ToArray();
+		}
+
+		bool initialized;
+		Dictionary<ushort, IRenderable[]> renderables;
+		public IEnumerable<IRenderable> Render(Actor self, WorldRenderer wr)
+		{
+			if (!initialized)
 			{
-				terrainPalette = wr.Palette("terrain");
-				initializePalettes = false;
+				var palette = wr.Palette("terrain");
+				renderables = new Dictionary<ushort, IRenderable[]>();
+				foreach (var t in Info.Templates)
+					renderables.Add(t.First, TemplateRenderables(wr, palette, t.First));
+
+				initialized = true;
 			}
 
-			foreach (var t in TileSprites[currentTemplate])
-				yield return new Renderable(t.Value, t.Key.ToPPos().ToFloat2(), terrainPalette, Game.CellSize * t.Key.Y);
+			return renderables[template];
 		}
 
 		void KillUnitsOnBridge()
 		{
-			foreach (var c in TileSprites[currentTemplate].Keys)
+			foreach (var c in footprint.Keys)
 				foreach (var a in self.World.ActorMap.GetUnitsAt(c))
-					if (a.HasTrait<IMove>() && !a.Trait<IMove>().CanEnterCell(c))
+					if (a.HasTrait<IPositionable>() && !a.Trait<IPositionable>().CanEnterCell(c))
 						a.Kill(self);
 		}
 
@@ -208,15 +196,21 @@ namespace OpenRA.Mods.RA
 		bool killedUnits = false;
 		void UpdateState()
 		{
-			var oldTemplate = currentTemplate;
+			var oldTemplate = template;
 
-			currentTemplate = ChooseTemplate();
-			if (currentTemplate == oldTemplate)
+			template = ChooseTemplate();
+			if (template == oldTemplate)
 				return;
 
 			// Update map
-			foreach (var c in TileSprites[currentTemplate].Keys)
+			foreach (var c in footprint.Keys)
 				self.World.Map.CustomTerrain[c.X, c.Y] = GetTerrainType(c);
+
+			// If this bridge repair operation connects two pathfinding domains,
+			// update the domain index.
+			var domainIndex = self.World.WorldActor.TraitOrDefault<DomainIndex>();
+			if (domainIndex != null)
+				domainIndex.UpdateCells(self.World, footprint.Keys);
 
 			if (LongBridgeSegmentIsDead() && !killedUnits)
 			{

@@ -8,6 +8,10 @@
  */
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Air;
@@ -15,41 +19,38 @@ using OpenRA.Mods.RA.Buildings;
 using OpenRA.Mods.RA.Move;
 using OpenRA.Network;
 using OpenRA.Traits;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 
 namespace OpenRA.Mods.RA.Missions
 {
 	public static class MissionUtils
 	{
-		public static IEnumerable<Actor> FindAliveCombatantActorsInCircle(this World world, PPos location, int range)
+		public static IEnumerable<Actor> FindAliveCombatantActorsInCircle(this World world, WPos location, WRange range)
 		{
-			return world.FindUnitsInCircle(location, Game.CellSize * range)
+			return world.FindActorsInCircle(location, range)
 				.Where(u => u.IsInWorld && u != world.WorldActor && !u.IsDead() && !u.Owner.NonCombatant);
 		}
 
-		public static IEnumerable<Actor> FindAliveCombatantActorsInBox(this World world, PPos a, PPos b)
+		public static IEnumerable<Actor> FindAliveCombatantActorsInBox(this World world, CPos a, CPos b)
 		{
-			return world.FindUnits(a, b).Where(u => u.IsInWorld && u != world.WorldActor && !u.IsDead() && !u.Owner.NonCombatant);
+			return world.FindActorsInBox(a, b)
+				.Where(u => u.IsInWorld && u != world.WorldActor && !u.IsDead() && !u.Owner.NonCombatant);
 		}
 
-		public static IEnumerable<Actor> FindAliveNonCombatantActorsInCircle(this World world, PPos location, int range)
+		public static IEnumerable<Actor> FindAliveNonCombatantActorsInCircle(this World world, WPos location, WRange range)
 		{
-			return world.FindUnitsInCircle(location, Game.CellSize * range)
+			return world.FindActorsInCircle(location, range)
 				.Where(u => u.IsInWorld && u != world.WorldActor && !u.IsDead() && u.Owner.NonCombatant);
 		}
 
 		public static Actor ExtractUnitWithChinook(World world, Player owner, Actor unit, CPos entry, CPos lz, CPos exit)
 		{
 			var chinook = world.CreateActor("tran", new TypeDictionary { new OwnerInit(owner), new LocationInit(entry) });
-			chinook.QueueActivity(new HeliFly(Util.CenterOfCell(lz)));
+			chinook.QueueActivity(new HeliFly(lz));
 			chinook.QueueActivity(new Turn(0));
-			chinook.QueueActivity(new HeliLand(true, 0));
+			chinook.QueueActivity(new HeliLand(true));
 			chinook.QueueActivity(new WaitFor(() => chinook.Trait<Cargo>().Passengers.Contains(unit)));
 			chinook.QueueActivity(new Wait(150));
-			chinook.QueueActivity(new HeliFly(Util.CenterOfCell(exit)));
+			chinook.QueueActivity(new HeliFly(exit));
 			chinook.QueueActivity(new RemoveSelf());
 			return chinook;
 		}
@@ -59,13 +60,13 @@ namespace OpenRA.Mods.RA.Missions
 			var unit = world.CreateActor(false, unitName, new TypeDictionary { new OwnerInit(owner) });
 			var chinook = world.CreateActor("tran", new TypeDictionary { new OwnerInit(owner), new LocationInit(entry) });
 			chinook.Trait<Cargo>().Load(chinook, unit);
-			chinook.QueueActivity(new HeliFly(Util.CenterOfCell(lz)));
+			chinook.QueueActivity(new HeliFly(lz));
 			chinook.QueueActivity(new Turn(0));
-			chinook.QueueActivity(new HeliLand(true, 0));
+			chinook.QueueActivity(new HeliLand(true));
 			chinook.QueueActivity(new UnloadCargo(true));
 			chinook.QueueActivity(new CallFunc(() => afterUnload(unit)));
 			chinook.QueueActivity(new Wait(150));
-			chinook.QueueActivity(new HeliFly(Util.CenterOfCell(exit)));
+			chinook.QueueActivity(new HeliFly(exit));
 			chinook.QueueActivity(new RemoveSelf());
 			return Pair.New(chinook, unit);
 		}
@@ -97,15 +98,15 @@ namespace OpenRA.Mods.RA.Missions
 				new FacingInit(Util.GetFacing(location - entry, 0)),
 				new AltitudeInit(Rules.Info["badr.bomber"].Traits.Get<PlaneInfo>().CruiseAltitude),
 			});
-			badger.Trait<CarpetBomb>().SetTarget(location);
+			badger.Trait<AttackBomber>().SetTarget(location.CenterPosition);
 			badger.QueueActivity(Fly.ToCell(location));
 			badger.QueueActivity(new FlyOffMap());
 			badger.QueueActivity(new RemoveSelf());
 		}
 
-		public static bool AreaSecuredWithUnits(World world, Player player, PPos location, int range)
+		public static bool AreaSecuredWithUnits(World world, Player player, WPos location, WRange range)
 		{
-			var units = world.FindAliveCombatantActorsInCircle(location, range).Where(a => a.HasTrait<IMove>());
+			var units = world.FindAliveCombatantActorsInCircle(location, range).Where(a => a.HasTrait<IPositionable>());
 			return units.Any() && units.All(a => a.Owner == player);
 		}
 
@@ -130,7 +131,8 @@ namespace OpenRA.Mods.RA.Missions
 
 		public static void PlayMissionMusic()
 		{
-			if (!Rules.InstalledMusic.Any()) return;
+			if (!Rules.InstalledMusic.Any() || !Game.Settings.Sound.MapMusic)
+				return;
 			Game.ConnectionStateChanged += StopMusic;
 			PlayMusic();
 		}
@@ -211,9 +213,9 @@ namespace OpenRA.Mods.RA.Missions
 			var enemies = self.World.Actors.Where(u => u.AppearsHostileTo(self) && u.Owner == enemyPlayer
 					&& ((u.HasTrait<Building>() && !u.HasTrait<Wall>()) || (u.HasTrait<Mobile>() && !u.HasTrait<Aircraft>())) && u.IsInWorld && !u.IsDead());
 
-			var enemy = enemies.OrderBy(u => (self.CenterLocation - u.CenterLocation).LengthSquared).FirstOrDefault();
+			var enemy = enemies.ClosestTo(self);
 			if (enemy != null)
-				self.QueueActivity(queued, new AttackMove.AttackMoveActivity(self, new Attack(Target.FromActor(enemy), 3)));
+				self.QueueActivity(queued, new AttackMove.AttackMoveActivity(self, new Attack(Target.FromActor(enemy), WRange.FromCells(3))));
 		}
 	}
 

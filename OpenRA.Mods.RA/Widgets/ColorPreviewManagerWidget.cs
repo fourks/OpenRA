@@ -9,11 +9,8 @@
 
 #endregion
 
-using System;
-using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.Graphics;
-using OpenRA.Traits;
 using OpenRA.Widgets;
 
 namespace OpenRA.Mods.RA.Widgets
@@ -21,7 +18,7 @@ namespace OpenRA.Mods.RA.Widgets
 	public class ColorPreviewManagerWidget : Widget
 	{
 		public readonly string Palette = "colorpicker";
-		public readonly int[] RemapIndices = {};
+		public readonly int[] RemapIndices = ChromeMetrics.Get<int[]>("ColorPickerRemapIndices");
 		public readonly float Ramp = 0.05f;
 		public HSLColor Color;
 
@@ -31,7 +28,6 @@ namespace OpenRA.Mods.RA.Widgets
 
 		[ObjectCreator.UseCtor]
 		public ColorPreviewManagerWidget(WorldRenderer worldRenderer)
-			: base()
 		{
 			this.worldRenderer = worldRenderer;
 		}

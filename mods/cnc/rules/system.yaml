@@ -6,7 +6,6 @@ Player:
 	PowerManager:
 	AllyRepair:
 	PlayerResources:
-		InitialCash: 5000
 	ActorGroupProxy:
 	DeveloperMode:
 	HackyAI@Default:
@@ -158,7 +157,7 @@ Player:
 			silo: 1
 		BuildingFractions:
 			proc: 17%
-			nuke: 10%	
+			nuke: 10%
 			pyle: 7%
 			hand: 9%
 			hq: 1%
@@ -200,10 +199,15 @@ Player:
 	PlayerColorPalette:
 		BasePalette: terrain
 		RemapIndex: 176, 178, 180, 182, 184, 186, 189, 191, 177, 179, 181, 183, 185, 187, 188, 190
+	PlayerHighlightPalette:
 	BaseAttackNotifier:
 	Shroud:
+	PlayerStatistics:
+	FrozenActorLayer:
 
 World:
+	ScreenMap:
+	ActorMap:
 	LoadWidgetAtGameStart:
 		Widget: INGAME_ROOT
 	CncMenuPaletteEffect:
@@ -211,6 +215,7 @@ World:
 	ScreenShaker:
 	NukePaletteEffect:
 	WaterPaletteRotation:
+		ExcludePalettes: effect
 	BuildingInfluence:
 	BridgeLayer:
 		Bridges: bridge1, bridge2, bridge3, bridge4
@@ -252,6 +257,12 @@ World:
 		G: 255
 		B: 255
 		A: 128
+	PaletteFromRGBA@moveflash:
+		Name: moveflash
+		R: 255
+		G: 255
+		B: 255
+		A: 64
 	PaletteFromRGBA@disabled:
 		Name: disabled
 		R: 0
@@ -262,7 +273,9 @@ World:
 		Type: Shroud
 	ShroudPalette@fog:
 		Name: fog
-		Type: Fog
+		Fog: true
+	ShroudRenderer:
+		Variants: typea, typeb, typec, typed
 	Country@gdi:
 		Name: GDI
 		Race: gdi
@@ -271,14 +284,16 @@ World:
 		Race: nod
 	ProductionQueueFromSelection:
 		ProductionTabsWidget: PRODUCTION_TABS
-	BibLayer:
+	DomainIndex:
 	ResourceLayer:
 	ResourceClaimLayer:
 	ResourceType@green-tib:
 		ResourceType: 1
 		Palette: staticterrain
 		TerrainType: Tiberium
-		SpriteNames: ti1,ti2,ti3,ti4,ti5,ti6,ti7,ti8,ti9,ti10,ti11,ti12
+		EditorSprite: ti1
+		Variants: ti1,ti2,ti3,ti4,ti5,ti6,ti7,ti8,ti9,ti10,ti11,ti12
+		MaxDensity: 12
 		ValuePerUnit: 35
 		Name: Tiberium
 		PipColor: Green
@@ -288,7 +303,9 @@ World:
 		ResourceType: 2
 		Palette: staticterrain
 		TerrainType: BlueTiberium
-		SpriteNames: bti1,bti2,bti3,bti4,bti5,bti6,bti7,bti8,bti9,bti10,bti11,bti12
+		EditorSprite: bti1
+		Variants: bti1,bti2,bti3,bti4,bti5,bti6,bti7,bti8,bti9,bti10,bti11,bti12
+		MaxDensity: 12
 		ValuePerUnit: 75
 		Name: BlueTiberium
 		PipColor: Blue
@@ -296,20 +313,65 @@ World:
 		AllowUnderActors: false
 	SmudgeLayer@SCORCH:
 		Type:Scorch
+		Sequence: scorches
 		SmokePercentage:50
-		Types:sc1,sc2,sc3,sc4,sc5,sc6
-		Depths:1,1,1,1,1,1
 	SmudgeLayer@CRATER:
 		Type:Crater
-		Types:cr1,cr2,cr3,cr4,cr5,cr6
-		Depths:5,5,5,5,5,5
-	DebugOverlay:
+		Sequence: craters
+	PathfinderDebugOverlay:
 	SpawnMapActors:
-	CreateMPPlayers:
-	SpawnMPUnits:
 	MPStartLocations:
-	SpatialBins:
-		BinSize: 4
+	CreateMPPlayers:
+	MPStartUnits@mcvonly:
+		Class: none
+		Races: gdi, nod
+		BaseActor: mcv
+	MPStartUnits@defaultgdia:
+		Class: light
+		Races: gdi
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e1,e3,e3,jeep
+	MPStartUnits@defaultgdib:
+		Class: light
+		Races: gdi
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e1,e1,e3,apc
+	MPStartUnits@defaultnoda:
+		Class: light
+		Races: nod
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e3,bggy,bike
+	MPStartUnits@defaultnodb:
+		Class: light
+		Races: nod
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e3,e3,e3,bggy
+	MPStartUnits@defaultnodc:
+		Class: light
+		Races: nod
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e1,e1,e1,e3,bike
+	MPStartUnits@heavynoda:
+		Class: heavy
+		Races: nod
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e3,e3,ltnk,ltnk,ftnk
+	MPStartUnits@heavynodb:
+		Class: heavy
+		Races: nod
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e1,e3,e3,e3,ftnk,ftnk
+	MPStartUnits@heavygdia:
+		Class: heavy
+		Races: gdi
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e3,e3,jeep,mtnk,mtnk
+	MPStartUnits@heavygdib:
+		Class: heavy
+		Races: gdi
+		BaseActor: mcv
+		SupportActors: e1,e1,e1,e1,e1,e2,e2,e2,e3,e3,apc,mtnk
+	SpawnMPUnits:
 	CrateSpawner:
 		Minimum: 1
 		Maximum: 6
@@ -339,22 +401,23 @@ CRATE:
 		SelectionShares: 5
 	CloakCrateAction:
 		SelectionShares: 5
-		InitialDelay: 15
-		CloakDelay: 90
-		CloakSound: trans1.aud
-		UncloakSound: trans1.aud
 		Effect: cloak
 	GiveMcvCrateAction:
 		SelectionShares: 0
 		NoBaseSelectionShares: 120
 		Unit: mcv
-	RenderSimple:
-	BelowUnits:
+	RenderSprites:
+		Palette: effect
+	WithCrateBody:
+		XmasImages: xcratea, xcrateb, xcratec, xcrated
+	BodyOrientation:
 
 mpspawn:
 	Waypoint:
 	RenderEditorOnly:
+	BodyOrientation:
 
 waypoint:
 	Waypoint:
 	RenderEditorOnly:
+	BodyOrientation:

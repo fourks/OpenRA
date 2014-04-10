@@ -6,11 +6,12 @@ Container@INGAME_ROOT:
 			Y:0
 			Width:WINDOW_RIGHT
 			Height:WINDOW_BOTTOM
-		ViewportScrollController:
+		ViewportController:
 			X:0
 			Y:0
 			Width:WINDOW_RIGHT
 			Height:WINDOW_BOTTOM
+			TooltipContainer:TOOLTIP_CONTAINER
 		WorldCommand:
 			X:0
 			Y:0
@@ -19,9 +20,15 @@ Container@INGAME_ROOT:
 		Timer@GAME_TIMER:
 			X: WINDOW_RIGHT/2
 			Y: 0-10
+			Font: Title
+			Contrast: true
 		StrategicProgress@STRATEGIC_PROGRESS:
 			X: WINDOW_RIGHT/2
 			Y: 40
+		SupportPowerTimer@SUPPORT_POWER_TIMER:
+			X:80
+			Y:34
+			Order:Descending
 		Container@PLAYER_ROOT:
 		Button@INGAME_OPTIONS_BUTTON:
 			X:0
@@ -31,30 +38,33 @@ Container@INGAME_ROOT:
 			Text:Options (ESC)
 			Font:Bold
 			Key: escape
-		WorldTooltip:
-		Background@PERF_BG:
-			ClickThrough:true
-			Background:dialog4
+		Container@PERFORMANCE_INFO:
 			Logic:PerfDebugLogic
-			X:10
-			Y:WINDOW_BOTTOM - 250
-			Width: 210
-			Height: 250
 			Children:
-				PerfGraph@GRAPH:
-					X:5
-					Y:5
-					Width:200
-					Height:200
-				Label@TEXT:
-					X:20
-					Y:205
+				Label@PERF_TEXT:
+					X:WINDOW_RIGHT - 200
+					Y:WINDOW_BOTTOM - 70
 					Width:170
 					Height:40
+					Contrast:true
+				Background@GRAPH_BG:
+					ClickThrough:true
+					Background:dialog4
+					X:30
+					Y:WINDOW_BOTTOM - 240
+					Width:210
+					Height:210
+					Children:
+						PerfGraph@GRAPH:
+							X:5
+							Y:5
+							Width:200
+							Height:200
+		TooltipContainer@TOOLTIP_CONTAINER:
 
 Container@PLAYER_WIDGETS:
 	Children:
-		LogicTicker@WIN_LOSS_WATCHER:
+		LogicTicker@SIDEBAR_TICKER:
 		Button@INGAME_DIPLOMACY_BUTTON:
 			X:162
 			Y:0
@@ -81,9 +91,29 @@ Container@PLAYER_WIDGETS:
 			Visible:false
 			Font:Bold
 			Key: f3
-		RadarBin@INGAME_RADAR_BIN:
-			WorldInteractionController:INTERACTION_CONTROLLER
-		PowerBin@INGAME_POWER_BIN:
+		SlidingContainer@INGAME_RADAR_BIN:
+			X:WINDOW_RIGHT-215
+			Y:0
+			OpenOffset:0,29
+			ClosedOffset:0,-166
+			AnimationLength:15
+			Children:
+				Image@RADAR_BIN_BG:
+					ImageName:radar
+				Radar@RADAR_MINIMAP:
+					WorldInteractionController:INTERACTION_CONTROLLER
+					X:9
+					Width:192
+					Height:192
+				ResourceBar@POWERBAR:
+					X:42
+					Y:205
+					Width:138
+					Height:5
+					TooltipContainer:TOOLTIP_CONTAINER
+					IndicatorImage:power-indicator
+					Orientation:Horizontal
+					Style:Bevelled
 		MoneyBin@INGAME_MONEY_BIN:
 			X:WINDOW_RIGHT - WIDTH
 			Y:0
@@ -120,46 +150,19 @@ Container@PLAYER_WIDGETS:
 		SupportPowerBin@INGAME_POWERS_BIN:
 			X:0
 			Y:25
-			ReadyText: READY
-			HoldText: ON HOLD
+			ReadyText: @ready@
+			HoldText: @on-hold@
 		BuildPalette@INGAME_BUILD_PALETTE:
 			X:WINDOW_RIGHT - 250
 			Y:280
 			Width:250
 			Height:500
-			ReadyText: READY
-			HoldText: ON HOLD
-			RequiresText: Requires
-		Background@DIPLOMACY_BG:
-			Logic:DiplomacyLogic
-			X:(WINDOW_RIGHT - WIDTH)/2
-			Y:(WINDOW_BOTTOM - HEIGHT)/2
-			Width:450
-			Height:400
-			Visible:false
-			Children:
-				Label@LABEL_TITLE:
-					X:(PARENT_RIGHT - WIDTH)/2
-					Y:20
-					Width:250
-					Height:25
-					Text:Diplomacy
-					Align:Center
-					Font:Bold
-				Button@CLOSE_DIPLOMACY:
-					X:(PARENT_RIGHT - WIDTH)/2
-					Y:350
-					Width:160
-					Height:25
-					Text:Close
-					Font:Bold
-					Key:escape
+			ReadyText: @ready@
+			HoldText: @on-hold@
+			RequiresText: @requires@
 
 Container@OBSERVER_WIDGETS:
 	Children:
-		SupportPowerBin@INGAME_POWERS_BIN:
-			X:0
-			Y:25
 		Button@INGAME_STATS_BUTTON:
 			X:162
 			Y:0

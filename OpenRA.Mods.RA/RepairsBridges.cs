@@ -11,7 +11,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenRA.Mods.RA.Activities;
-using OpenRA.Mods.RA.Buildings;
 using OpenRA.Mods.RA.Orders;
 using OpenRA.Traits;
 
@@ -69,27 +68,28 @@ namespace OpenRA.Mods.RA
 			public RepairBridgeOrderTargeter()
 				: base("RepairBridge", 6, "goldwrench", true, true) { }
 
-			public override bool CanTargetActor(Actor self, Actor target, bool forceAttack, bool forceQueued, ref string cursor)
+			public override bool CanTargetActor(Actor self, Actor target, TargetModifiers modifiers, ref string cursor)
 			{
-				if (!base.CanTargetActor(self, target, forceAttack, forceQueued, ref cursor))
-					return false;
-
 				var bridge = target.TraitOrDefault<BridgeHut>();
 				if (bridge == null)
 					return false;
 
 				// Require force attack to heal partially damaged bridges to avoid unnecessary cursor noise
 				var damage = bridge.BridgeDamageState;
-				if (!forceAttack && damage != DamageState.Dead)
+				if (!modifiers.HasModifier(TargetModifiers.ForceAttack) && damage != DamageState.Dead)
 					return false;
-
-				IsQueued = forceQueued;
 
 				// Can't repair an undamaged bridge
 				if (damage == DamageState.Undamaged)
 					cursor = "goldwrench-blocked";
 
 				return true;
+			}
+
+			public override bool CanTargetFrozenActor(Actor self, FrozenActor target, TargetModifiers modifiers, ref string cursor)
+			{
+				// TODO: Bridges don't yet support FrozenUnderFog.
+				return false;
 			}
 		}
 	}

@@ -9,11 +9,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using OpenRA.Server;
-using OpenRA.Network;
 using S = OpenRA.Server.Server;
 
 namespace OpenRA.Mods.RA.Server
@@ -33,7 +29,7 @@ namespace OpenRA.Mods.RA.Server
 			{
 				isInitialPing = false;
 				lastPing = Environment.TickCount;
-				foreach (var p in server.conns)
+				foreach (var p in server.Conns)
 					server.SendOrderTo(p, "Ping", Environment.TickCount.ToString());
 			}
 		}

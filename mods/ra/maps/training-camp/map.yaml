@@ -1,6 +1,8 @@
 Selectable: True
 
-MapFormat: 5
+MapFormat: 6
+
+RequiresMod: ra
 
 Title: Training camp
 
@@ -18,6 +20,15 @@ UseAsShellmap: False
 
 Type: Minigame
 
+Options:
+	Crates: False
+	Fog: True
+	Shroud: True
+	AllyBuildRadius: False
+	FragileAlliances: False
+	StartingCash: 100
+	ConfigurableStartingUnits: False
+
 Players:
 	PlayerReference@Neutral:
 		Name: Neutral
@@ -31,48 +42,56 @@ Players:
 	PlayerReference@Multi0:
 		Name: Multi0
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi1,Multi2,Multi3,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi1:
 		Name: Multi1
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi2:
 		Name: Multi2
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi1,Multi3,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi3:
 		Name: Multi3
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi1,Multi2,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi4:
 		Name: Multi4
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi1,Multi2,Multi3,Multi5,Multi6,Multi17
 	PlayerReference@Multi5:
 		Name: Multi5
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi1,Multi6,Multi17
 	PlayerReference@Multi6:
 		Name: Multi6
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi5,Multi1,Multi17
 	PlayerReference@Multi7:
 		Name: Multi7
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi5,Multi6,Multi11
@@ -792,8 +811,6 @@ Rules:
 		-SpawnMPUnits:
 		-MPStartLocations:
 	Player:
-		PlayerResources:
-			InitialCash: 100
 		ClassicProductionQueue@Infantry:
 			Type: Infantry
 			BuildSpeed: 1
@@ -817,6 +834,8 @@ Rules:
 			HP: 5000
 		Production:
 			Produces: Building,Infantry
+		BaseProvider:
+			Range: 16
 	WEAP:
 		Buildable:
 			Owner: allies
@@ -966,6 +985,12 @@ Rules:
 			Prerequisites: barr,oilb
 		Valued:
 			Cost: 200
+	SNIPER:
+		Buildable:
+			Owner: soviet
+			Prerequisites: barr,oilb
+		Valued:
+			Cost: 200
 	V2RL:
 		Buildable:
 			Owner: soviet
@@ -1041,38 +1066,16 @@ Rules:
 			Prerequisites: barr,oilb
 		Valued:
 			Cost: 150
-	DEMOT:
-		Inherits: ^Vehicle
+	DTRK:
 		Buildable:
-			Queue: Vehicle
 			BuildPaletteOrder: 10
 			Prerequisites: barr,oilb
-			Owner: soviet
 		Valued:
 			Cost: 150
-		Tooltip:
-			Name: Demo Truck
-			Description: Armed with a nuclear bomb.\n  Unarmed
-			Icon: MNLYICON
-		Health:
-			HP: 110
-		Armor:
-			Type: Light
-		Mobile:
-			Speed: 9
-		RevealsShroud:
-			Range: 3
-		RenderUnit:
-			Image: truk
-		Armament:
-			Weapon: CrateNuke
-			LocalOffset: 0,0,171
-		AttackFrontal:
-		AttackMove:
-			JustMove: yes
-		DemoTruck:
 
 Sequences:
+
+VoxelSequences:
 
 Weapons:
 	CrateNuke:
@@ -1082,7 +1085,7 @@ Weapons:
 			SmudgeType: Scorch
 			Size: 4,3
 			Ore: true
-			Versus: 
+			Versus:
 				None: 90%
 				Light: 60%
 				Heavy: 25%
@@ -1096,7 +1099,7 @@ Weapons:
 			SmudgeType: Scorch
 			Size: 3,2
 			Ore: true
-			Versus: 
+			Versus:
 				None: 90%
 				Light: 60%
 				Heavy: 25%
@@ -1110,7 +1113,7 @@ Weapons:
 			SmudgeType: Scorch
 			Size: 2,1
 			Ore: true
-			Versus: 
+			Versus:
 				None: 90%
 				Light: 60%
 				Heavy: 25%
@@ -1118,4 +1121,9 @@ Weapons:
 			Delay: 36
 			InfDeath: 4
 			ImpactSound: kaboom22
+
 Voices:
+
+Notifications:
+
+Translations:

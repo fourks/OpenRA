@@ -8,8 +8,7 @@
  */
 #endregion
 
-using System;
-using System.Drawing;
+using System.Linq;
 
 namespace OpenRA
 {
@@ -22,13 +21,28 @@ namespace OpenRA
 
 		public WRange(int r) { Range = r; }
 		public static readonly WRange Zero = new WRange(0);
+		public static WRange FromCells(int cells) { return new WRange(1024*cells); }
 
 		public static WRange operator +(WRange a, WRange b) { return new WRange(a.Range + b.Range); }
 		public static WRange operator -(WRange a, WRange b) { return new WRange(a.Range - b.Range); }
 		public static WRange operator -(WRange a) { return new WRange(-a.Range); }
+		public static WRange operator /(WRange a, int b) { return new WRange(a.Range / b); }
+		public static WRange operator *(WRange a, int b) { return new WRange(a.Range * b); }
+		public static WRange operator *(int a, WRange b) { return new WRange(a * b.Range); }
 
 		public static bool operator ==(WRange me, WRange other) { return (me.Range == other.Range); }
 		public static bool operator !=(WRange me, WRange other) { return !(me == other); }
+
+		// Sampled a N-sample probability density function in the range [-1024..1024]
+		// 1 sample produces a rectangular probability
+		// 2 samples produces a triangular probability
+		// ...
+		// N samples approximates a true gaussian
+		public static WRange FromPDF(Thirdparty.Random r, int samples)
+		{
+			return new WRange(Exts.MakeArray(samples, _ => r.Next(-1024, 1024))
+				.Sum() / samples);
+		}
 
 		public static bool TryParse(string s, out WRange result)
 		{
@@ -52,6 +66,10 @@ namespace OpenRA
 			default: return false;
 			}
 
+			// Propagate sign to fractional part
+			if (cell < 0)
+				subcell = -subcell;
+
 			result = new WRange(1024*cell + subcell);
 			return true;
 		}
@@ -60,11 +78,8 @@ namespace OpenRA
 
 		public override bool Equals(object obj)
 		{
-			if (obj == null)
-				return false;
-
-			WRange o = (WRange)obj;
-			return o == this;
+			var o = obj as WRange?;
+			return o != null && o == this;
 		}
 
 		public override string ToString() { return "{0}".F(Range); }

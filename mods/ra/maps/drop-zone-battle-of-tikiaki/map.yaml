@@ -1,6 +1,8 @@
 Selectable: True
 
-MapFormat: 5
+MapFormat: 6
+
+RequiresMod: ra
 
 Title: Drop Zone - Battle of Tikiaki
 
@@ -16,7 +18,16 @@ Bounds: 16,16,32,32
 
 UseAsShellmap: False
 
-Type: Minigame
+Type: Drop Zone
+
+Options:
+	Crates: True
+	Fog: False
+	Shroud: False
+	AllyBuildRadius: False
+	FragileAlliances: False
+	StartingCash: 5000
+	ConfigurableStartingUnits: False
 
 Players:
 	PlayerReference@Neutral:
@@ -31,48 +42,56 @@ Players:
 	PlayerReference@Multi0:
 		Name: Multi0
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi1,Multi2,Multi3,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi1:
 		Name: Multi1
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi2:
 		Name: Multi2
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi1,Multi3,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi3:
 		Name: Multi3
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi1,Multi2,Multi4,Multi5,Multi6,Multi17
 	PlayerReference@Multi4:
 		Name: Multi4
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi1,Multi2,Multi3,Multi5,Multi6,Multi17
 	PlayerReference@Multi5:
 		Name: Multi5
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi1,Multi6,Multi17
 	PlayerReference@Multi6:
 		Name: Multi6
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi5,Multi1,Multi17
 	PlayerReference@Multi7:
 		Name: Multi7
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: soviet
 		Enemies: Multi0,Multi2,Multi3,Multi4,Multi5,Multi6,Multi11
@@ -329,6 +348,8 @@ Rules:
 
 Sequences:
 
+VoxelSequences:
+
 Weapons:
 	PortaTesla:
 		ROF: 20
@@ -339,3 +360,7 @@ Weapons:
 			Damage: 80
 
 Voices:
+
+Notifications:
+
+Translations:

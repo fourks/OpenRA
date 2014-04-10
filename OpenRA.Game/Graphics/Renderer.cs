@@ -28,8 +28,10 @@ namespace OpenRA.Graphics
 		internal static int TempBufferCount;
 
 		public SpriteRenderer WorldSpriteRenderer { get; private set; }
+		public SpriteRenderer WorldRgbaSpriteRenderer { get; private set; }
 		public QuadRenderer WorldQuadRenderer { get; private set; }
 		public LineRenderer WorldLineRenderer { get; private set; }
+		public VoxelRenderer WorldVoxelRenderer { get; private set; }
 		public LineRenderer LineRenderer { get; private set; }
 		public SpriteRenderer RgbaSpriteRenderer { get; private set; }
 		public SpriteRenderer SpriteRenderer { get; private set; }
@@ -37,15 +39,19 @@ namespace OpenRA.Graphics
 		Queue<IVertexBuffer<Vertex>> tempBuffers = new Queue<IVertexBuffer<Vertex>>();
 
 		public Dictionary<string, SpriteFont> Fonts;
+		Stack<Rectangle> scissorState;
 
 		public Renderer()
 		{
 			TempBufferSize = Game.Settings.Graphics.BatchSize;
 			TempBufferCount = Game.Settings.Graphics.NumTempBuffers;
 			SheetSize = Game.Settings.Graphics.SheetSize;
+			scissorState = new Stack<Rectangle>();
 
 			WorldSpriteRenderer = new SpriteRenderer(this, device.CreateShader("shp"));
+			WorldRgbaSpriteRenderer = new SpriteRenderer(this, device.CreateShader("rgba"));
 			WorldLineRenderer = new LineRenderer(this, device.CreateShader("line"));
+			WorldVoxelRenderer = new VoxelRenderer(this, device.CreateShader("vxl"));
 			LineRenderer = new LineRenderer(this, device.CreateShader("line"));
 			WorldQuadRenderer = new QuadRenderer(this, device.CreateShader("line"));
 			RgbaSpriteRenderer = new SpriteRenderer(this, device.CreateShader("rgba"));
@@ -66,11 +72,13 @@ namespace OpenRA.Graphics
 		{
 			device.Clear();
 			WorldSpriteRenderer.SetViewportParams(Resolution, zoom, scroll);
+			WorldRgbaSpriteRenderer.SetViewportParams(Resolution, zoom, scroll);
 			SpriteRenderer.SetViewportParams(Resolution, 1f, float2.Zero);
 			RgbaSpriteRenderer.SetViewportParams(Resolution, 1f, float2.Zero);
 			WorldLineRenderer.SetViewportParams(Resolution, zoom, scroll);
 			WorldQuadRenderer.SetViewportParams(Resolution, zoom, scroll);
 			LineRenderer.SetViewportParams(Resolution, 1f, float2.Zero);
+			WorldVoxelRenderer.SetViewportParams(Resolution, zoom, scroll);
 		}
 
 		ITexture currentPaletteTexture;
@@ -85,6 +93,8 @@ namespace OpenRA.Graphics
 			RgbaSpriteRenderer.SetPalette(currentPaletteTexture);
 			SpriteRenderer.SetPalette(currentPaletteTexture);
 			WorldSpriteRenderer.SetPalette(currentPaletteTexture);
+			WorldRgbaSpriteRenderer.SetPalette(currentPaletteTexture);
+			WorldVoxelRenderer.SetPalette(currentPaletteTexture);
 		}
 
 		public void EndFrame(IInputHandler inputHandler)
@@ -115,7 +125,7 @@ namespace OpenRA.Graphics
 
 		static IGraphicsDevice device;
 
-		public static Size Resolution { get { return device.WindowSize; } }
+		public Size Resolution { get { return device.WindowSize; } }
 
 		// Work around a bug in OSX 10.6.8 / mono 2.10.2 / SDL 1.2.14
 		// which makes the window non-interactive in Windowed/Pseudofullscreen mode.
@@ -127,10 +137,10 @@ namespace OpenRA.Graphics
 				FixOSX();
 
 			var resolution = GetResolution(windowMode);
-			
-			string renderer = Game.Settings.Server.Dedicated ? "Null" : Game.Settings.Graphics.Renderer;
+
+			var renderer = Game.Settings.Server.Dedicated ? "Null" : Game.Settings.Graphics.Renderer;
 			var rendererPath = Path.GetFullPath("OpenRA.Renderer.{0}.dll".F(renderer));
-			
+
 			device = CreateDevice(Assembly.LoadFile(rendererPath), resolution.Width, resolution.Height, windowMode);
 		}
 
@@ -175,16 +185,42 @@ namespace OpenRA.Graphics
 			}
 		}
 
-		public void EnableScissor(int left, int top, int width, int height)
+		public void EnableScissor(Rectangle rect)
 		{
+			// Must remain inside the current scissor rect
+			if (scissorState.Any())
+				rect.Intersect(scissorState.Peek());
+
 			Flush();
-			Device.EnableScissor(left, top, width, height);
+			Device.EnableScissor(rect.Left, rect.Top, rect.Width, rect.Height);
+			scissorState.Push(rect);
 		}
 
 		public void DisableScissor()
 		{
+			scissorState.Pop();
 			Flush();
-			Device.DisableScissor();
+
+			// Restore previous scissor rect
+			if (scissorState.Any())
+			{
+				var rect = scissorState.Peek();
+				Device.EnableScissor(rect.Left, rect.Top, rect.Width, rect.Height);
+			}
+			else
+				Device.DisableScissor();
+		}
+
+		public void EnableDepthBuffer()
+		{
+			Flush();
+			Device.EnableDepthBuffer();
+		}
+
+		public void DisableDepthBuffer()
+		{
+			Flush();
+			Device.DisableDepthBuffer();
 		}
 	}
 }

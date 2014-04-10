@@ -8,10 +8,8 @@
  */
 #endregion
 
-using System;
 using System.Linq;
 using OpenRA.Traits;
-using OpenRA.Mods.RA.Activities;
 
 namespace OpenRA.Mods.RA
 {
@@ -33,13 +31,14 @@ namespace OpenRA.Mods.RA
 			if (arm == null)
 				return;
 
-			if (!Combat.IsInRange(self.CenterLocation, arm.Weapon.Range, target))
+			// TODO: Define weapon ranges as WRange
+			var range = new WRange((int)(1024*arm.Weapon.Range));
+			if (!target.IsInRange(self.CenterPosition, range))
 				return;
 
-			var move = self.TraitOrDefault<IMove>();
 			var facing = self.TraitOrDefault<IFacing>();
 			foreach (var a in Armaments)
-				a.CheckFire(self, this, move, facing, target);
+				a.CheckFire(self, this, facing, target);
 
 			if (target.Actor != null)
 				target.Actor.ChangeOwner(self.Owner);

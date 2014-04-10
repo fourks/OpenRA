@@ -23,7 +23,6 @@ DOG:
 	Armament:
 		Weapon: DogJaw
 	AttackLeap:
-		CanAttackGround: no
 	RenderInfantry:
 		IdleAnimations: idle1,idle2
 	IgnoresDisguise:
@@ -53,6 +52,7 @@ E1:
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 
 E2:
 	Inherits: ^Infantry
@@ -61,7 +61,7 @@ E2:
 		BuildPaletteOrder: 10
 		Owner: soviet
 		Prerequisites: barr
-		Hotkey: n
+		Hotkey: g
 	Valued:
 		Cost: 160
 	Tooltip:
@@ -82,9 +82,10 @@ E2:
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 	Explodes:
 		Weapon: UnitExplodeSmall
-		Chance: 50		
+		Chance: 50
 
 E3:
 	Inherits: ^Infantry
@@ -103,7 +104,7 @@ E3:
 	Health:
 		HP: 45
 	Mobile:
-		Speed: 3
+		Speed: 4
 	Armament@PRIMARY:
 		Weapon: RedEye
 		LocalOffset: 0,0,555
@@ -115,6 +116,7 @@ E3:
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 
 E4:
 	Inherits: ^Infantry
@@ -134,7 +136,7 @@ E4:
 	Health:
 		HP: 40
 	Mobile:
-		Speed: 3
+		Speed: 4
 	Armament:
 		Weapon: Flamer
 		LocalOffset: 427,0,341
@@ -144,6 +146,7 @@ E4:
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 
 E6:
 	Inherits: ^Infantry
@@ -168,16 +171,15 @@ E6:
 		PipType: Yellow
 	EngineerRepair:
 	RepairsBridges:
-	Captures:
+	ExternalCaptures:
 	TakeCover:
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 
 SPY:
 	Inherits: ^Infantry
@@ -206,15 +208,14 @@ SPY:
 	TakeCover:
 	Spy:
 	Infiltrates:
-		InfiltrateTypes: Cash, SupportPower, Exploration
+		Types: Cash, SupportPower, Exploration
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 	-RenderInfantry:
 	RenderSpy:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 	Armament:
 		Weapon: SilencedPPK
 	AttackFrontal:
@@ -265,7 +266,7 @@ MEDI:
 		Prerequisites: tent
 		Hotkey: m
 	Valued:
-		Cost: 300
+		Cost: 200
 	Tooltip:
 		Name: Medic
 		Description: Heals nearby infantry.\n  Strong vs Nothing\n  Weak vs Everything
@@ -287,8 +288,6 @@ MEDI:
 		Cursor: heal
 	TakeCover:
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 	-RenderInfantry:
@@ -304,7 +303,7 @@ MECH:
 		Prerequisites: fix
 		Hotkey: c
 	Valued:
-		Cost: 800
+		Cost: 500
 	Tooltip:
 		Name: Mechanic
 		Description: Repairs nearby vehicles.\n  Strong vs Nothing\n  Weak vs Everything
@@ -326,8 +325,6 @@ MECH:
 		Cursor: repair
 	TakeCover:
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 	-RenderInfantry:
@@ -350,8 +347,6 @@ EINSTEIN:
 	RevealsShroud:
 		Range: 2
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 	ProximityCaptor:
@@ -376,8 +371,6 @@ DELPHI:
 	RevealsShroud:
 		Range: 2
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 	ProximityCaptor:
@@ -395,6 +388,8 @@ GNRL:
 	Inherits: ^CivInfantry
 	Tooltip:
 		Name: General
+	Selectable:
+		Voice: StavrosVoice
 
 THF:
 	Inherits: ^Infantry
@@ -418,8 +413,6 @@ THF:
 		InfiltrateTypes: Cash
 	TakeCover:
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 
@@ -432,7 +425,7 @@ SHOK:
 		Owner: soviet
 		Hotkey: l
 	Valued:
-		Cost: 500
+		Cost: 400
 	Tooltip:
 		Name: Tesla Trooper
 		Description: Infantry with tesla coils\n Strong vs Infantry\n Weak vs Vehicles
@@ -442,7 +435,7 @@ SHOK:
 	Health:
 		HP: 80
 	Mobile:
-		Speed: 3
+		Speed: 4
 	RevealsShroud:
 		Range: 4
 	Armament:
@@ -453,6 +446,7 @@ SHOK:
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 	-CrushableInfantry:
 
 SNIPER:
@@ -460,7 +454,6 @@ SNIPER:
 	Valued:
 		Cost: 700
 	Tooltip:
-		Icon: snipericon
 		Name: Sniper
 		Description: Elite sniper infantry unit.\n  Strong vs Infantry\n  Weak vs Vehicles
 	Buildable:
@@ -468,13 +461,13 @@ SNIPER:
 		BuildPaletteOrder: 80
 		Owner: soviet
 		Prerequisites: dome
-		Hotkey: n
+		Hotkey: h
 	Selectable:
 		Bounds: 12,17,0,-6
 	Mobile:
 		Speed: 4
 	Health:
-		HP: 200
+		HP: 80
 	Passenger:
 		PipType: Red
 	RevealsShroud:
@@ -488,6 +481,7 @@ SNIPER:
 	-RenderInfantry:
 	RenderInfantryProne:
 		IdleAnimations: idle1,idle2
+		StandAnimations: stand,stand2
 	Cloak:
 		InitialDelay: 250
 		CloakDelay: 120
@@ -495,5 +489,59 @@ SNIPER:
 		UncloakSound:
 		UncloakOnMove: yes
 	Captures:
-		CaptureTypes: civilianbuilding
-		AllowAllies: true
+		CaptureTypes: CivilianBuilding
+		Sabotage: no
+		SabotageHPRemoval: 0
+
+Zombie:
+	Inherits: ^Infantry
+	Valued:
+		Cost: 100
+	Tooltip:
+		Name: Zombie
+		Description: Slow undead. Attacks in close combat.
+	Buildable:
+		Queue: Infantry
+		BuildPaletteOrder: 200
+		Owner: Umbrella
+		Prerequisites: bio
+	Selectable:
+		Voice: AntVoice
+		Bounds: 12,17,0,-9
+	Health:
+		HP: 250
+	Mobile:
+		Speed: 3
+	AutoTarget:
+		ScanRadius: 5
+	AttackFrontal:
+	Armament:
+		Weapon: claw
+
+Ant:
+	Inherits: ^Infantry
+	Valued:
+		Cost: 300
+	Tooltip:
+		Name: Giant Ant
+		Description: Irradiated insect that grew oversize.
+	Buildable:
+		Queue: Infantry
+		BuildPaletteOrder: 1954
+		Owner: Them
+		Prerequisites: bio
+	Selectable:
+		Voice: AntVoice
+		Bounds: 30,30,0,-2
+	Health:
+		HP: 750
+		Radius: 11
+	Mobile:
+		Speed: 7
+		ROT: 12
+		SharesCell: no
+	AutoTarget:
+		ScanRadius: 5
+	AttackFrontal:
+	Armament:
+		Weapon: mandible

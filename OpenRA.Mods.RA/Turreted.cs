@@ -8,10 +8,6 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using OpenRA.Mods.RA.Render;
 using OpenRA.FileFormats;
 using OpenRA.Traits;
 
@@ -33,6 +29,7 @@ namespace OpenRA.Mods.RA
 
 	public class Turreted : ITick, ISync, IResolveOrder
 	{
+		[Sync] public int QuantizedFacings = 0;
 		[Sync] public int turretFacing = 0;
 		public int? desiredFacing;
 		TurretedInfo info;
@@ -70,29 +67,38 @@ namespace OpenRA.Mods.RA
 
 		public bool FaceTarget(Actor self, Target target)
 		{
-			desiredFacing = Util.GetFacing(target.CenterLocation - self.CenterLocation, turretFacing);
+			desiredFacing = Util.GetFacing(target.CenterPosition - self.CenterPosition, turretFacing);
 			return turretFacing == desiredFacing;
 		}
 
 		public virtual void ResolveOrder(Actor self, Order order)
 		{
-			if (info.AlignWhenIdle && order.OrderString != "Attack" && order.OrderString != "AttackHold")
+			if (info.AlignWhenIdle && order.OrderString != "Attack")
 				desiredFacing = null;
 		}
 
 		// Turret offset in world-space
 		public WVec Position(Actor self)
 		{
-			var coords = self.Trait<ILocalCoordinatesModel>();
-			var bodyOrientation = coords.QuantizeOrientation(self, self.Orientation);
-			return coords.LocalToWorld(Offset.Rotate(bodyOrientation));
+			var body = self.Trait<IBodyOrientation>();
+			var bodyOrientation = body.QuantizeOrientation(self, self.Orientation);
+			return body.LocalToWorld(Offset.Rotate(bodyOrientation));
 		}
 
 		// Orientation in unit-space
 		public WRot LocalOrientation(Actor self)
 		{
+
 			// Hack: turretFacing is relative to the world, so subtract the body yaw
-			return WRot.FromYaw(WAngle.FromFacing(turretFacing) - self.Orientation.Yaw);
+			var local = WRot.FromYaw(WAngle.FromFacing(turretFacing) - self.Orientation.Yaw);
+
+			if (QuantizedFacings == 0)
+				return local;
+
+			// Quantize orientation to match a rendered sprite
+			// Implies no pitch or yaw
+			var facing = Util.QuantizeFacing(local.Yaw.Angle / 4, QuantizedFacings) * (256 / QuantizedFacings);
+			return new WRot(WAngle.Zero, WAngle.Zero, WAngle.FromFacing(facing));
 		}
 	}
 }

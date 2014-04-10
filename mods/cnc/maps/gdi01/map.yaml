@@ -1,6 +1,6 @@
 Selectable: True
 
-MapFormat: 5
+MapFormat: 6
 
 RequiresMod: cnc
 
@@ -20,29 +20,35 @@ UseAsShellmap: False
 
 Type: Campaign
 
+Options:
+	Crates: False
+	Fog: False
+	Shroud: True
+	AllyBuildRadius: False
+	FragileAlliances: False
+	StartingCash: 500
+	ConfigurableStartingUnits: False
+
 Players:
 	PlayerReference@BadGuy:
 		Name: BadGuy
 		Race: nod
-		ColorRamp: 3,255,127,28
+		ColorRamp: 3,255,127
 		Allies: BadGuy
 		Enemies: GoodGuy,Creeps
 	PlayerReference@GoodGuy:
 		Name: GoodGuy
 		Playable: True
+		AllowBots: False
+		Required: True
 		LockRace: True
 		Race: gdi
 		LockColor: True
-		ColorRamp: 31,222,183,24
-		LockTeam: True
-		Team: 0
+		ColorRamp: 31,222,183
 		LockSpawn: True
-		Spawn: 0
-		AllowBots: False
-		InitialCash: 20
+		LockTeam: True
 		Allies: GoodGuy
 		Enemies: BadGuy,Creeps
-		Required: True
 	PlayerReference@Neutral:
 		Name: Neutral
 		OwnsWorld: True
@@ -463,7 +469,7 @@ Rules:
 		-Buildable:
 	FIX:
 		-Buildable:
-	HPAD.GDI:
+	HPAD:
 		-Buildable:
 	EYE:
 		-Buildable:
@@ -483,10 +489,16 @@ Rules:
 		-Buildable:
 	BOAT:
 		Mobile:
-			OnRails: false # workaround a crash
+			OnRails: false
 
 Sequences:
+
+VoxelSequences:
 
 Weapons:
 
 Voices:
+
+Notifications:
+
+Translations:

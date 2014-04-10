@@ -22,6 +22,7 @@ RIFLE:
 	TakeCover:
 	-RenderInfantry:
 	RenderInfantryProne:
+		IdleAnimations: stand,stand2
 
 ENGINEER:
 	Inherits: ^Infantry
@@ -46,11 +47,8 @@ ENGINEER:
 	Passenger:
 		PipType: Yellow
 	EngineerRepair:
-	Captures:
-	#TakeCover:
+	ExternalCaptures:
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
 
@@ -80,21 +78,21 @@ BAZOOKA:
 	TakeCover:
 	-RenderInfantry:
 	RenderInfantryProne:
+		IdleAnimations: stand,stand2
 
 MEDIC:
 	Inherits: ^Infantry
 	Buildable:
 		Queue: Infantry
 		BuildPaletteOrder: 60
-		Owner: atreides,ordos
-		Prerequisites: research
+		Owner: atreides, ordos
+		Prerequisites: Research
 		Hotkey: m
 	Valued:
 		Cost: 500
 	Tooltip:
 		Name: Medic
 		Description: Heals nearby infantry\n  Strong vs Nothing\n  Weak vs Everything
-		Icon: thumpericon
 	Selectable:
 		Bounds: 12,17,0,0
 		Voice: EngineerVoice
@@ -110,64 +108,5 @@ MEDIC:
 	Passenger:
 		PipType: Blue
 	-AutoTarget:
-	-DebugRetiliateAgainstAggressor:
-	-DebugNextAutoTargetScanTime:
 	AttackMove:
 		JustMove: true
-	RenderInfantry:
-		Image: THUMPER
-
-
-#THUMPER:
-#	Inherits: ^Infantry
-#	Buildable:
-#		Queue: Infantry
-#		BuildPaletteOrder: 50
-#		Owner: atreides,harkonnen,ordos
-#	Valued:
-#		Cost: 400
-#	Tooltip:
-#		Name: Thumper
-#		Description: Attracts sandsworm through vibrations\n  Strong vs Nothing\n  Weak vs Everything
-#	Selectable:
-#		Bounds: 12,17,0,0
-#	Health:
-#		HP: 25
-#	Mobile:
-#		Speed: 4
-#	Passenger:
-#	-AutoTarget:
-#	-DebugRetiliateAgainstAggressor:
-#	-DebugNextAutoTargetScanTime:
-#	AttackMove:
-#		JustMove: true
-#	Transforms:
-#		IntoActor: thumping
-#		Offset:1,1
-#		Facing: 1
-#
-#THUMPING:
-#	Inherits: ^Building
-#	Building:
-#		Power: 0
-#		Footprint: x
-#		Dimensions: 1,1
-#		TerrainTypes: Sand, Dune
-#	Health:
-#		HP: 25
-#	Armor:
-#		Type: None
-#	RevealsShroud:
-#		Range: 5
-#	Valued:
-#		Cost: 400
-#	Tooltip:
-#		Name: Thumper
-#	-Capturable:
-#	-CapturableBar:
-#	-Sellable:
-#	-GivesBuildableArea:
-#	FreeActor:
-#		Actor: SANDWORM
-#		SpawnOffset: 1,2
-#		Facing: 1

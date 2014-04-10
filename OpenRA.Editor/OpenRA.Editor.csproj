@@ -116,7 +116,6 @@
     <Compile Include="PropertiesDialog.Designer.cs">
       <DependentUpon>PropertiesDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ActorPropertiesDialog.resx">
       <DependentUpon>ActorPropertiesDialog.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -166,6 +165,7 @@
     <Compile Include="Surface.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="TileSetRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenRA.FileFormats\OpenRA.FileFormats.csproj">

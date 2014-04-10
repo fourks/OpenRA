@@ -26,9 +26,9 @@ namespace OpenRA.Mods.RA.Widgets
 		public int Columns = 3;
 		public int Rows = 5;
 
-		public string ReadyText = "";
-		public string HoldText = "";
-		public string RequiresText = "";
+		[Translate] public string ReadyText = "";
+		[Translate] public string HoldText = "";
+		[Translate] public string RequiresText = "";
 
 		public int IconWidth = 64;
 		public int IconHeight = 48;
@@ -37,10 +37,9 @@ namespace OpenRA.Mods.RA.Widgets
 		List<ProductionQueue> VisibleQueues;
 
 		bool paletteOpen = false;
-		Dictionary<string, Sprite> iconSprites;
 
-		float2 paletteOpenOrigin = new float2(Game.viewport.Width - 215, 280);
-		float2 paletteClosedOrigin = new float2(Game.viewport.Width - 16, 280);
+		float2 paletteOpenOrigin;
+		float2 paletteClosedOrigin;
 		float2 paletteOrigin;
 
 		int paletteAnimationLength = 7;
@@ -64,16 +63,16 @@ namespace OpenRA.Mods.RA.Widgets
 			cantBuild = new Animation("clock");
 			cantBuild.PlayFetchIndex("idle", () => 0);
 			clock = new Animation("clock");
-			paletteOrigin = paletteClosedOrigin;
 			VisibleQueues = new List<ProductionQueue>();
 			CurrentQueue = null;
+		}
 
-			iconSprites = Rules.Info.Values
-				.Where(u => u.Traits.Contains<BuildableInfo>() && u.Name[0] != '^')
-				.ToDictionary(
-					u => u.Name,
-					u => Game.modData.SpriteLoader.LoadAllSprites(
-						u.Traits.Get<TooltipInfo>().Icon ?? (u.Name + "icon"))[0]);
+		public override void Initialize(WidgetArgs args)
+		{
+			paletteOpenOrigin = new float2(Game.Renderer.Resolution.Width - Columns*IconWidth - 23, 280);
+			paletteClosedOrigin = new float2(Game.Renderer.Resolution.Width - 16, 280);
+			paletteOrigin = paletteClosedOrigin;
+			base.Initialize(args);
 		}
 
 		public override Rectangle EventBounds
@@ -147,30 +146,30 @@ namespace OpenRA.Mods.RA.Widgets
 
 		public override bool HandleKeyPress(KeyInput e)
 		{
-			if (e.Event == KeyInputEvent.Up) return false;
-			if (e.KeyName == Game.Settings.Keys.CycleTabsKey)
-			{
-				TabChange(e.Modifiers.HasModifier(Modifiers.Shift));
-				return true;
-			}
-			return DoBuildingHotkey(e.KeyName, world);
+			if (e.Event == KeyInputEvent.Up)
+				return false;
+
+			var hotkey = Hotkey.FromKeyInput(e);
+
+			if (hotkey == Game.Settings.Keys.NextProductionTabKey)
+				return ChangeTab(false);
+			else if (hotkey == Game.Settings.Keys.PreviousProductionTabKey)
+				return ChangeTab(true);
+
+			return DoBuildingHotkey(e, world);
 		}
 
 		public override bool HandleMouseInput(MouseInput mi)
 		{
+			// Eat mouse-up events
 			if (mi.Event != MouseInputEvent.Down)
-				return false;
+				return true;
 
 			if (mi.Button == MouseButton.WheelDown)
-			{
-				TabChange(false);
-				return true;
-			}
+				return ChangeTab(false);
+
 			if (mi.Button == MouseButton.WheelUp)
-			{
-				TabChange(true);
-				return true;
-			}
+				return ChangeTab(true);
 
 			var action = tabs.Where(a => a.First.Contains(mi.Location))
 				.Select(a => a.Second).FirstOrDefault();
@@ -201,6 +200,7 @@ namespace OpenRA.Mods.RA.Widgets
 
 			string paletteCollection = "palette-" + world.LocalPlayer.Country.Race;
 			float2 origin = new float2(paletteOrigin.X + 9, paletteOrigin.Y + 9);
+			var iconOffset = 0.5f * new float2(IconWidth, IconHeight);
 			var x = 0;
 			var y = 0;
 
@@ -229,7 +229,9 @@ namespace OpenRA.Mods.RA.Widgets
 				{
 					var rect = new RectangleF(origin.X + x * IconWidth, origin.Y + IconHeight * y, IconWidth, IconHeight);
 					var drawPos = new float2(rect.Location);
-					WidgetUtils.DrawSHP(iconSprites[item.Name], drawPos, worldRenderer);
+					var icon = new Animation(RenderSimple.GetImage(item));
+					icon.Play(item.Traits.Get<TooltipInfo>().Icon);
+					WidgetUtils.DrawSHPCentered(icon.Image, drawPos + iconOffset, worldRenderer);
 
 					var firstOfThis = queue.AllQueued().FirstOrDefault(a => a.Item == item.Name);
 
@@ -244,7 +246,7 @@ namespace OpenRA.Mods.RA.Widgets
 							() => (firstOfThis.TotalTime - firstOfThis.RemainingTime)
 								* (clock.CurrentSequence.Length - 1) / firstOfThis.TotalTime);
 						clock.Tick();
-						WidgetUtils.DrawSHP(clock.Image, drawPos, worldRenderer);
+						WidgetUtils.DrawSHPCentered(clock.Image, drawPos + iconOffset, worldRenderer);
 
 						if (queue.CurrentItem() == firstOfThis)
 							textBits.Add(Pair.New(overlayPos, GetOverlayForItem(firstOfThis)));
@@ -265,7 +267,7 @@ namespace OpenRA.Mods.RA.Widgets
 				if (x != 0) y++;
 
 				foreach (var ob in overlayBits)
-					WidgetUtils.DrawSHP(ob.First, ob.Second, worldRenderer);
+					WidgetUtils.DrawSHPCentered(ob.First, ob.Second + iconOffset, worldRenderer);
 
 				var font = Game.Renderer.Fonts["TinyBold"];
 				foreach (var tb in textBits)
@@ -278,19 +280,19 @@ namespace OpenRA.Mods.RA.Widgets
 				// Tooltip
 				if (tooltipItem != null && !paletteAnimating && paletteOpen)
 					DrawProductionTooltip(world, tooltipItem,
-						new float2(Game.viewport.Width, origin.Y + numActualRows * IconHeight + 9).ToInt2());
+						new float2(Game.Renderer.Resolution.Width, origin.Y + numActualRows * IconHeight + 9).ToInt2());
 			}
 
 			// Palette Dock
 			WidgetUtils.DrawRGBA(ChromeProvider.GetImage(paletteCollection, "dock-top"),
-				new float2(Game.viewport.Width - 14, origin.Y - 23));
+				new float2(Game.Renderer.Resolution.Width - 14, origin.Y - 23));
 
 			for (int i = 0; i < numActualRows; i++)
-				WidgetUtils.DrawRGBA(ChromeProvider.GetImage(paletteCollection, "dock-" + (i % 4).ToString()),
-					new float2(Game.viewport.Width - 14, origin.Y + IconHeight * i));
+				WidgetUtils.DrawRGBA(ChromeProvider.GetImage(paletteCollection, "dock-" + (i % 4)),
+					new float2(Game.Renderer.Resolution.Width - 14, origin.Y + IconHeight * i));
 
 			WidgetUtils.DrawRGBA(ChromeProvider.GetImage(paletteCollection, "dock-bottom"),
-				new float2(Game.viewport.Width - 14, origin.Y - 1 + IconHeight * numActualRows));
+				new float2(Game.Renderer.Resolution.Width - 14, origin.Y - 1 + IconHeight * numActualRows));
 
 			return IconHeight * y + 9;
 		}
@@ -363,6 +365,8 @@ namespace OpenRA.Mods.RA.Widgets
 						return;
 					}
 				}
+				else
+					Sound.PlayNotification(world.LocalPlayer, "Speech", CurrentQueue.Info.QueuedAudio, world.LocalPlayer.Country.Race);
 
 				StartProduction(world, item);
 			}
@@ -389,7 +393,6 @@ namespace OpenRA.Mods.RA.Widgets
 
 		void StartProduction(World world, string item)
 		{
-			Sound.PlayNotification(world.LocalPlayer, "Speech", CurrentQueue.Info.QueuedAudio, world.LocalPlayer.Country.Race);
 			world.IssueOrder(Order.StartProduction(CurrentQueue.self, item,
 				Game.GetModifierKeys().HasModifier(Modifiers.Shift) ? 5 : 1));
 		}
@@ -453,10 +456,10 @@ namespace OpenRA.Mods.RA.Widgets
 			var longDescSize = Game.Renderer.Fonts["Regular"].Measure(tooltip.Description.Replace("\\n", "\n")).Y;
 			if (!canBuildThis) longDescSize += 8;
 
-			WidgetUtils.DrawPanel("dialog4", new Rectangle(Game.viewport.Width - 300, pos.Y, 300, longDescSize + 65));
+			WidgetUtils.DrawPanel("dialog4", new Rectangle(Game.Renderer.Resolution.Width - 300, pos.Y, 300, longDescSize + 65));
 
 			Game.Renderer.Fonts["Bold"].DrawText(
-				tooltip.Name + ((buildable.Hotkey != null) ? " ({0})".F(buildable.Hotkey.ToUpper()) : ""),
+				tooltip.Name + (buildable.Hotkey.IsValid() ? " ({0})".F(buildable.Hotkey.DisplayString()) : ""),
 												   p.ToInt2() + new int2(5, 5), Color.White);
 
 			var resources = pl.PlayerActor.Trait<PlayerResources>();
@@ -481,7 +484,7 @@ namespace OpenRA.Mods.RA.Widgets
 				var prereqs = buildable.Prerequisites.Select(Description);
 				if (prereqs.Any())
 				{
-					Game.Renderer.Fonts["Regular"].DrawText("{0} {1}".F(RequiresText, prereqs.JoinWith(", ")), p.ToInt2(), Color.White);
+					Game.Renderer.Fonts["Regular"].DrawText(RequiresText.F(prereqs.JoinWith(", ")), p.ToInt2(), Color.White);
 
 					p += new int2(0, 8);
 				}
@@ -492,12 +495,12 @@ namespace OpenRA.Mods.RA.Widgets
 				p.ToInt2(), Color.White);
 		}
 
-		bool DoBuildingHotkey(string key, World world)
+		bool DoBuildingHotkey(KeyInput e, World world)
 		{
 			if (!paletteOpen) return false;
 			if (CurrentQueue == null) return false;
 
-			var toBuild = CurrentQueue.BuildableItems().FirstOrDefault(b => b.Traits.Get<BuildableInfo>().Hotkey == key);
+			var toBuild = CurrentQueue.BuildableItems().FirstOrDefault(b => b.Traits.Get<BuildableInfo>().Hotkey == Hotkey.FromKeyInput(e));
 
 			if (toBuild != null)
 			{
@@ -509,14 +512,21 @@ namespace OpenRA.Mods.RA.Widgets
 			return false;
 		}
 
-		void TabChange(bool shift)
+		// NOTE: Always return true here to prevent mouse events from passing through the sidebar and interacting with the world behind it.
+		bool ChangeTab(bool reverse)
 		{
+			Sound.PlayNotification(null, "Sounds", "TabClick", null);
 			var queues = VisibleQueues.Concat(VisibleQueues);
-			if (shift) queues = queues.Reverse();
+			if (reverse)
+				queues = queues.Reverse();
 			var nextQueue = queues.SkipWhile(q => q != CurrentQueue)
 				.ElementAtOrDefault(1);
 			if (nextQueue != null)
+			{
 				SetCurrentTab(nextQueue);
+				return true;
+			}
+			return true;
 		}
 	}
 }

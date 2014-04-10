@@ -11,8 +11,6 @@
 using System.Drawing;
 using System.Linq;
 using OpenRA.FileFormats;
-using OpenRA.Mods.RA;
-using OpenRA.Mods.RA.Air;
 using OpenRA.Mods.RA.Move;
 using OpenRA.Traits;
 
@@ -31,13 +29,15 @@ namespace OpenRA.Mods.RA
 	public class ExitInfo : TraitInfo<Exit>
 	{
 		public readonly int2 SpawnOffset = int2.Zero;	// in px relative to CenterLocation
-		public readonly int2 ExitCell = int2.Zero;			// in cells relative to TopLeft
+		public readonly int2 ExitCell = int2.Zero;		// in cells relative to TopLeft
 		public readonly int Facing = -1;
 
-		public PVecInt SpawnOffsetVector { get { return (PVecInt)SpawnOffset; } }
+		// TODO: Push this conversion into the yaml
+		public WVec SpawnOffsetVector { get { return new WVec(SpawnOffset.X, SpawnOffset.Y, 0) * 1024 / Game.CellSize; } }
 		public CVec ExitCellVector { get { return (CVec)ExitCell; } }
 	}
-	public class Exit {}
+
+	public class Exit { }
 
 	public class Production
 	{
@@ -50,8 +50,8 @@ namespace OpenRA.Mods.RA
 		public void DoProduction(Actor self, ActorInfo producee, ExitInfo exitinfo)
 		{
 			var exit = self.Location + exitinfo.ExitCellVector;
-			var spawn = self.Trait<IHasLocation>().PxPosition + exitinfo.SpawnOffsetVector;
-			var to = Util.CenterOfCell(exit);
+			var spawn = self.CenterPosition + exitinfo.SpawnOffsetVector;
+			var to = exit.CenterPosition;
 
 			var fi = producee.Traits.Get<IFacingInfo>();
 			var initialFacing = exitinfo.Facing < 0 ? Util.GetFacing(to - spawn, fi.GetInitialFacing()) : exitinfo.Facing;
@@ -65,8 +65,8 @@ namespace OpenRA.Mods.RA
 
 			// TODO: Move this into an *Init
 			// TODO: We should be adjusting the actual position for aircraft, not just visuals.
-			var teleportable = newUnit.Trait<ITeleportable>();
-			teleportable.AdjustPxPosition(newUnit, spawn);
+			var teleportable = newUnit.Trait<IPositionable>();
+			teleportable.SetVisualPosition(newUnit, spawn);
 
 			// TODO: Generalize this for non-mobile (e.g. aircraft) too
 			// Remember to update the Enter activity too
@@ -75,7 +75,7 @@ namespace OpenRA.Mods.RA
 			{
 				// Animate the spawn -> exit transition
 				var speed = mobile.MovementSpeedForCell(newUnit, exit);
-				var length = speed > 0 ? (int)((to - spawn).Length * 3 / speed) : 0;
+				var length = speed > 0 ? (to - spawn).Length / speed : 0;
 				newUnit.QueueActivity(new Drag(spawn, to, length));
 			}
 
@@ -92,19 +92,11 @@ namespace OpenRA.Mods.RA
 			if (rp == null)
 				return exitLocation;
 
-			var mobile = newUnit.TraitOrDefault<Mobile>();
-			if (mobile != null)
+			var move = newUnit.TraitOrDefault<IMove>();
+			if (move != null)
 			{
 				newUnit.QueueActivity(new AttackMove.AttackMoveActivity(
-					newUnit, mobile.MoveTo(rp.rallyPoint, rp.nearEnough)));
-				return rp.rallyPoint;
-			}
-
-			// TODO: don't talk about HeliFly here.
-			var helicopter = newUnit.TraitOrDefault<Helicopter>();
-			if (helicopter != null)
-			{
-				newUnit.QueueActivity(new HeliFly(Util.CenterOfCell(rp.rallyPoint)));
+					newUnit, move.MoveTo(rp.rallyPoint, rp.nearEnough)));
 				return rp.rallyPoint;
 			}
 

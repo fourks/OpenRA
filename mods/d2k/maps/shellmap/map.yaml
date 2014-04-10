@@ -1,6 +1,8 @@
 Selectable: False
 
-MapFormat: 5
+MapFormat: 6
+
+RequiresMod: d2k
 
 Title: Shellmap
 
@@ -18,11 +20,14 @@ UseAsShellmap: True
 
 Type: Conquest
 
+Options:
+
 Players:
 	PlayerReference@Neutral:
 		Name: Neutral
 		OwnsWorld: True
 		Race: allies
+
 Actors:
 	Actor0: spicebloom
 		Location: 27,42
@@ -91,10 +96,15 @@ Rules:
 	World:
 		LoadWidgetAtGameStart:
 			Widget: MAINMENU
+
 Sequences:
+
+VoxelSequences:
 
 Weapons:
 
 Voices:
 
 Notifications:
+
+Translations:

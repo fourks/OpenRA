@@ -9,7 +9,6 @@
 #endregion
 
 using System;
-using System.Drawing;
 
 namespace OpenRA
 {
@@ -40,11 +39,8 @@ namespace OpenRA
 
 		public override bool Equals(object obj)
 		{
-			if (obj == null)
-				return false;
-
-			WAngle o = (WAngle)obj;
-			return o == this;
+			var o = obj as WAngle?;
+			return o != null && o == this;
 		}
 
 		public int Sin() { return new WAngle(Angle - 256).Cos(); }
@@ -65,6 +61,42 @@ namespace OpenRA
 			if (Angle <= 512)
 				return -TanTable[512 - Angle];
 			return new WAngle(Angle - 512).Tan();
+		}
+
+		public static WAngle ArcTan(int y, int x) { return ArcTan(y, x, 1); }
+		public static WAngle ArcTan(int y, int x, int stride)
+		{
+			if (y == 0)
+				return new WAngle(x >= 0 ? 0 : 512);
+
+			if (x == 0)
+				return new WAngle(Math.Sign(y)*256);
+
+			var ay = Math.Abs(y);
+			var ax = Math.Abs(x);
+
+			// Find the closest angle that satisfies y = x*tan(theta)
+			var bestVal = int.MaxValue;
+			var bestAngle = 0;
+			for (var i = 0; i < 256; i+= stride)
+			{
+				var val = Math.Abs(1024*ay - ax*TanTable[i]);
+				if (val < bestVal)
+				{
+					bestVal = val;
+					bestAngle = i;
+				}
+			}
+
+			// Calculate quadrant
+			if (x < 0 && y > 0)
+				bestAngle = 512 - bestAngle;
+			else if (x < 0 && y < 0)
+				bestAngle = 512 + bestAngle;
+			else if (x > 0 && y < 0)
+				bestAngle = 1024 - bestAngle;
+
+			return new WAngle(bestAngle);
 		}
 
 		// Must not be used outside rendering code

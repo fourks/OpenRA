@@ -21,6 +21,11 @@ fact:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib2
+		Start: 0
+		Length: *
+	icon: facticnh
+		Start: 0
 
 nuke:
 	idle:
@@ -38,6 +43,11 @@ nuke:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: nukeicnh
+		Start: 0
 
 proc:
 	idle:
@@ -54,12 +64,19 @@ proc:
 		Start: 0
 		Length: *
 		Tick: 80
-	lights: proctwr
+	resources: proctwr
 		Start: 0
 		Length: 6
-	damaged-lights: proctwr
+		Offset: -32,-21
+	damaged-resources: proctwr
 		Start: 6
 		Length: 6
+		Offset: -32,-21
+	bib: bib2
+		Start: 0
+		Length: *
+	icon: procicnh
+		Start: 0
 
 silo:
 	idle:
@@ -74,6 +91,11 @@ silo:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: siloicnh
+		Start: 0
 
 hand:
 	idle:
@@ -86,6 +108,11 @@ hand:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: handicnh
+		Start: 0
 
 pyle:
 	idle:
@@ -103,6 +130,11 @@ pyle:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: pyleicnh
+		Start: 0
 
 weap:
 	idle:
@@ -125,28 +157,43 @@ weap:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib2
+		Start: 0
+		Length: *
+	icon: weapicnh
+		Start: 0
 
 afld:
 	idle:
 		Start: 0
 		Tick: 120
+		ZOffset: -1023
 	active:
 		Start: 0
 		Length: 16
 		Tick: 120
+		ZOffset: -1023
 	damaged-idle:
 		Start: 16
 		Tick: 120
+		ZOffset: -1023
 	damaged-active:
 		Start: 16
 		Length: 16
 		Tick: 120
+		ZOffset: -1023
 	dead:
 		Start: 32
+		ZOffset: -1023
 	make: afldmake
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib1
+		Start: 0
+		Length: *
+	icon: afldicnh
+		Start: 0
 
 hq:
 	idle:
@@ -163,6 +210,11 @@ hq:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: hqicnh
+		Start: 0
 
 nuk2:
 	idle:
@@ -179,44 +231,62 @@ nuk2:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: nuk2icnh
+		Start: 0
 
 hpad:
 	idle:
 		Start: 0
+		ZOffset: -1023
 	damaged-idle:
 		Start: 7
+		ZOffset: -1023
 	active:
 		Start: 1
 		Length: 6
 		Tick: 100
+		ZOffset: -1023
 	damaged-active:
 		Start: 8
 		Length: 6
 		Tick: 100		
+		ZOffset: -1023
 	dead:
 		Start: 14
+		ZOffset: -1023
 	make: hpadmake
 		Start: 0
 		Length: *
 		Tick: 80
+	icon: hpadicnh
+		Start: 0
 
 fix:
 	idle:
 		Start: 0
+		ZOffset: -1c511
 	damaged-idle:
 		Start: 7
 	active:
 		Start: 0
 		Length: 7
+		ZOffset: -1c511
 	damaged-active:
 		Start: 7
 		Length: 7
+		ZOffset: -1c511
 	dead:
 		Start: 14
+		ZOffset: -1c511
 	make: fixmake
 		Start: 0
 		Length: 14
 		Tick: 60
+	icon: fixicnh
+		Start: 0
 
 eye:
 	idle:
@@ -233,6 +303,11 @@ eye:
 		Start: 0
 		Length: *
 		Tick: 80
+	bib: bib3
+		Start: 0
+		Length: *
+	icon: eyeicnh
+		Start: 0
 
 tmpl:
 	idle:
@@ -251,6 +326,11 @@ tmpl:
 		Start: 0
 		Length: *
 		Tick: 60
+	bib: bib2
+		Start: 0
+		Length: *
+	icon: tmplicnh
+		Start: 0
 
 obli:
 	idle:
@@ -269,6 +349,8 @@ obli:
 		Start: 0
 		Length: 13
 		Tick: 80
+	icon: obliicnh
+		Start: 0
 
 brik:
 	idle:
@@ -283,6 +365,8 @@ brik:
 	critical-idle:
 		Start: 48
 		Length: 16
+	icon: brikicnh
+		Start: 0
 
 sbag:
 	idle:
@@ -291,6 +375,8 @@ sbag:
 	damaged-idle:
 		Start: 16
 		Length: 16
+	icon: sbagicnh
+		Start: 0
 
 cycl:
 	idle:
@@ -302,6 +388,8 @@ cycl:
 	critical-idle:
 		Start: 32
 		Length: 16
+	icon: cyclicnh
+		Start: 0
 
 barb:
 	idle:
@@ -336,6 +424,11 @@ gun:
 		Start: 0
 		Length: *
 		Tick: 80
+	muzzle: gunfire2
+		Start: 0
+		Length: *
+	icon: gunicnh
+		Start: 0
 
 sam:
 	closed-idle:
@@ -374,6 +467,9 @@ sam:
 		Start: 0
 		Length: 18
 		Facings: 8
+	icon: samicnh
+		Start: 0
+
 gtwr:
 	idle:
 		Start: 0
@@ -389,6 +485,8 @@ gtwr:
 		Start: 0
 		Length: 6
 		Facings: 8
+	icon: gtwricnh
+		Start: 0
 
 atwr:
 	idle:
@@ -401,4 +499,55 @@ atwr:
 		Start: 0
 		Length: *
 		Tick: 80
+	muzzle: gunfire2
+		Start: 0
+		Length: *
+	icon: atwricnh
+		Start: 0
 
+hosp:
+	idle:
+		Start: 0
+		Length: 4
+		Tick: 100
+	damaged-idle:
+		Start: 4
+		Length: 4
+	make: hospmake
+		Start: 0
+		Length: *
+		Tick: 80
+
+hosp.husk:
+	idle: hosp
+		Start: 8
+
+bio:
+	idle:
+		Start: 0
+	damaged-idle:
+		Start: 1
+	make: biomake
+		Start: 0
+		Length: *
+		Tick: 80
+
+bio.husk:
+	idle: bio
+		Start: 2
+
+miss:
+	idle:
+		Start: 0
+	damaged-idle:
+		Start: 1
+	make: missmake
+		Start: 0
+		Length: *
+		Tick: 80
+	icon: missicnh
+		Start: 0
+
+miss.husk:
+	idle: miss
+		Start: 2

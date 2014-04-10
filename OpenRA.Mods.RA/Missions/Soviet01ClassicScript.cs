@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.FileFormats;
+using OpenRA.Graphics;
 using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Air;
 using OpenRA.Mods.RA.Buildings;
@@ -27,15 +28,11 @@ namespace OpenRA.Mods.RA.Missions
 	{
 		public event Action<bool> OnObjectivesUpdated = notify => { };
 
-		public IEnumerable<Objective> Objectives { get { return objectives.Values; } }
+		public IEnumerable<Objective> Objectives { get { return new[] { destroy }; } }
 
-		Dictionary<int, Objective> objectives = new Dictionary<int, Objective>
-		{
-			{ DestroyID, new Objective(ObjectiveType.Primary, Destroy, ObjectiveStatus.InProgress) }
-		};
+		Objective destroy = new Objective(ObjectiveType.Primary, DestroyText, ObjectiveStatus.InProgress);
 
-		const int DestroyID = 0;
-		const string Destroy = "A pitiful excuse for resistance has blockaded itself in this village."
+		const string DestroyText = "A pitiful excuse for resistance has blockaded itself in this village."
 							+ " Stalin has decided to make an example of them. Kill them all and destroy their homes."
 							+ " You will have Yak aircraft to use in teaching these rebels a lesson.";
 
@@ -80,12 +77,12 @@ namespace OpenRA.Mods.RA.Missions
 			var unitsAndBuildings = world.Actors.Where(a => !a.IsDead() && a.IsInWorld && (a.HasTrait<Mobile>() || (a.HasTrait<Building>() && !a.HasTrait<Wall>())));
 			if (!unitsAndBuildings.Any(a => a.Owner == france))
 			{
-				objectives[DestroyID].Status = ObjectiveStatus.Completed;
+				destroy.Status = ObjectiveStatus.Completed;
 				MissionAccomplished("We destroyed the resistance.");
 			}
 			else if (!unitsAndBuildings.Any(a => a.Owner == ussr))
 			{
-				objectives[DestroyID].Status = ObjectiveStatus.Failed;
+				destroy.Status = ObjectiveStatus.Failed;
 				MissionFailed("We were destroyed by the resistance.");
 			}
 			if (!startJeepParadropped && startJeep.IsDead())
@@ -111,7 +108,7 @@ namespace OpenRA.Mods.RA.Missions
 				{
 					new OwnerInit(ussr),
 					new LocationInit(entry),
-					new FacingInit(Util.GetFacing(airfield.Location - entry, 0)),
+					new FacingInit(Traits.Util.GetFacing(airfield.Location - entry, 0)),
 					new AltitudeInit(Rules.Info["yak"].Traits.Get<PlaneInfo>().CruiseAltitude)
 				});
 
@@ -130,15 +127,14 @@ namespace OpenRA.Mods.RA.Missions
 			{
 				var bridge = world.Actors
 					.Where(a => a.HasTrait<Bridge>() && !a.IsDead())
-					.OrderBy(a => (startJeep.CenterLocation - a.CenterLocation).LengthSquared)
-					.First();
-				Combat.DoExplosion(bridge, "Demolish", bridge.CenterLocation, 0);
-				world.WorldActor.Trait<ScreenShaker>().AddEffect(15, bridge.CenterLocation.ToFloat2(), 6);
+					.ClosestTo(startJeep);
+				Combat.DoExplosion(bridge, "Demolish", bridge.CenterPosition);
+				world.WorldActor.Trait<ScreenShaker>().AddEffect(15, bridge.CenterPosition, 6);
 				bridge.Kill(bridge);
 			}));
 		}
 
-		public void WorldLoaded(World w)
+		public void WorldLoaded(World w, WorldRenderer wr)
 		{
 			world = w;
 
@@ -158,7 +154,7 @@ namespace OpenRA.Mods.RA.Missions
 			airfield3 = actors["Airfield3"];
 			airfields = new[] { airfield1, airfield2, airfield3 };
 
-			Game.MoveViewport(startJeep.Location.ToFloat2());
+			wr.Viewport.Center(startJeep.CenterPosition);
 
 			if (w.LobbyInfo.IsSinglePlayer)
 			{

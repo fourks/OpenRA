@@ -32,7 +32,7 @@ namespace OpenRA.Widgets
 		Lazy<TooltipContainerWidget> tooltipContainer;
 		public int TooltipSpawnIndex = -1;
 
-		public MapPreviewWidget() : base()
+		public MapPreviewWidget()
 		{
 			tooltipContainer = Lazy.New(() => Ui.Root.Get<TooltipContainerWidget>(TooltipContainer));
 		}
@@ -170,7 +170,7 @@ namespace OpenRA.Widgets
 					uid = cacheUids.Peek();
 				}
 
-				var bitmap = Minimap.RenderMapPreview(Game.modData.AvailableMaps[uid]);
+				var bitmap = Minimap.RenderMapPreview(Game.modData.AvailableMaps[uid], false);
 				lock (syncRoot)
 				{
 					// TODO: We should add previews to a sheet here (with multiple previews per sheet)

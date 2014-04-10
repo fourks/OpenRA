@@ -13,7 +13,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using OpenRA.FileFormats;
 using OpenRA.Traits;
 
 namespace OpenRA.Graphics
@@ -79,11 +78,11 @@ namespace OpenRA.Graphics
 					{
 						var mapX = x + map.Bounds.Left;
 						var mapY = y + map.Bounds.Top;
-						if (map.MapResources.Value[mapX, mapY].type == 0)
+						if (map.MapResources.Value[mapX, mapY].Type == 0)
 							continue;
 
 						var res = Rules.Info["world"].Traits.WithInterface<ResourceTypeInfo>()
-								.Where(t => t.ResourceType == map.MapResources.Value[mapX, mapY].type)
+								.Where(t => t.ResourceType == map.MapResources.Value[mapX, mapY].Type)
 								.Select(t => t.TerrainType).FirstOrDefault();
 						if (res == null)
 							continue;
@@ -114,7 +113,7 @@ namespace OpenRA.Graphics
 					{
 						var mapX = x + map.Bounds.Left;
 						var mapY = y + map.Bounds.Top;
-						var custom = map.CustomTerrain[mapX,mapY];
+						var custom = map.CustomTerrain[mapX, mapY];
 						if (custom == null)
 							continue;
 						*(c + (y * bitmapData.Stride >> 2) + x) = world.TileSet.Terrain[custom].Color.ToArgb();
@@ -186,9 +185,9 @@ namespace OpenRA.Graphics
 			return bitmap;
 		}
 
-		public static Bitmap RenderMapPreview(Map map)
+		public static Bitmap RenderMapPreview(Map map, bool actualSize)
 		{
-			Bitmap terrain = TerrainBitmap(map);
+			Bitmap terrain = TerrainBitmap(map, actualSize);
 			return AddStaticResources(map, terrain);
 		}
 	}

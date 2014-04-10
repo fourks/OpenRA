@@ -1,4 +1,4 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
  * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenRA.FileFormats;
 using OpenRA.GameRules;
-using OpenRA.Mods.RA.Render;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA
@@ -27,12 +26,12 @@ namespace OpenRA.Mods.RA
 	[Desc("Allows you to attach weapons to the unit (use @IdentifierSuffix for > 1)")]
 	public class ArmamentInfo : ITraitInfo, Requires<AttackBaseInfo>
 	{
+		public readonly string Name = "primary";
+
 		[WeaponReference]
 		[Desc("Has to be defined here and in weapons.yaml.")]
 		public readonly string Weapon = null;
 		public readonly string Turret = "primary";
-		[Desc("Move the turret backwards when firing.")] 
-		public readonly int LegacyRecoil = 0;
 		[Desc("Time (in frames) until the weapon can fire again.")] 
 		public readonly int FireDelay = 0;
 
@@ -54,7 +53,7 @@ namespace OpenRA.Mods.RA
 		public readonly WeaponInfo Weapon;
 		public readonly Barrel[] Barrels;
 		Lazy<Turreted> Turret;
-		Lazy<ILocalCoordinatesModel> Coords;
+		Lazy<IBodyOrientation> Coords;
 
 		public WRange Recoil;
 		public int FireDelay { get; private set; }
@@ -66,7 +65,7 @@ namespace OpenRA.Mods.RA
 
 			// We can't resolve these until runtime
 			Turret = Lazy.New(() => self.TraitsImplementing<Turreted>().FirstOrDefault(t => t.Name == info.Turret));
-			Coords = Lazy.New(() => self.Trait<ILocalCoordinatesModel>());
+			Coords = Lazy.New(() => self.Trait<IBodyOrientation>());
 
 			Weapon = Rules.Weapons[info.Weapon.ToLowerInvariant()];
 			Burst = Weapon.Burst;
@@ -99,59 +98,60 @@ namespace OpenRA.Mods.RA
 
 		// Note: facing is only used by the legacy positioning code
 		// The world coordinate model uses Actor.Orientation
-		public void CheckFire(Actor self, AttackBase attack, IMove move, IFacing facing, Target target)
+		public void CheckFire(Actor self, AttackBase attack, IFacing facing, Target target)
 		{
-			if (FireDelay > 0) return;
+			if (FireDelay > 0)
+				return;
 
 			var limitedAmmo = self.TraitOrDefault<LimitedAmmo>();
 			if (limitedAmmo != null && !limitedAmmo.HasAmmo())
 				return;
 
-			if (!Combat.IsInRange(self.CenterLocation, Weapon.Range, target)) return;
-			if (Combat.IsInRange(self.CenterLocation, Weapon.MinRange, target)) return;
-			if (!IsValidAgainst(self.World, target)) return;
+			// TODO: Define weapon ranges as WRange
+			var range = new WRange((int)(1024*Weapon.Range));
+			var minRange = new WRange((int)(1024*Weapon.MinRange));
+			if (!target.IsInRange(self.CenterPosition, range))
+				return;
+
+			if (minRange != WRange.Zero && target.IsInRange(self.CenterPosition, minRange))
+				return;
+
+			if (!Weapon.IsValidAgainst(target, self.World))
+				return;
 
 			var barrel = Barrels[Burst % Barrels.Length];
-			var destMove = target.IsActor ? target.Actor.TraitOrDefault<IMove>() : null;
-
 			var muzzlePosition = self.CenterPosition + MuzzleOffset(self, barrel);
-			var legacyMuzzlePosition = PPos.FromWPos(muzzlePosition);
-			var legacyMuzzleAltitude = Game.CellSize*muzzlePosition.Z/1024;
 			var legacyFacing = MuzzleOrientation(self, barrel).Yaw.Angle / 4;
 
 			var args = new ProjectileArgs
 			{
-				weapon = Weapon,
-				firedBy = self,
-				target = target,
-				src = legacyMuzzlePosition,
-				srcAltitude = legacyMuzzleAltitude,
-
-				dest = target.CenterLocation,
-				destAltitude = destMove != null ? destMove.Altitude : 0,
-
-				facing = legacyFacing,
-
-				firepowerModifier = self.TraitsImplementing<IFirepowerModifier>()
+				Weapon = Weapon,
+				Facing = legacyFacing,
+				FirepowerModifier = self.TraitsImplementing<IFirepowerModifier>()
 					.Select(a => a.GetFirepowerModifier())
-					.Product()
+					.Product(),
+
+				Source = muzzlePosition,
+				SourceActor = self,
+				PassiveTarget = target.CenterPosition,
+				GuidedTarget = target
 			};
 
 			attack.ScheduleDelayedAction(Info.FireDelay, () =>
 			{
-				if (args.weapon.Projectile != null)
+				if (args.Weapon.Projectile != null)
 				{
-					var projectile = args.weapon.Projectile.Create(args);
+					var projectile = args.Weapon.Projectile.Create(args);
 					if (projectile != null)
 						self.World.Add(projectile);
 
-					if (args.weapon.Report != null && args.weapon.Report.Any())
-						Sound.Play(args.weapon.Report.Random(self.World.SharedRandom) + ".aud", self.CenterLocation);
+					if (args.Weapon.Report != null && args.Weapon.Report.Any())
+						Sound.Play(args.Weapon.Report.Random(self.World.SharedRandom), self.CenterPosition);
 				}
 			});
 
 			foreach (var na in self.TraitsImplementing<INotifyAttack>())
-				na.Attacking(self, target);
+				na.Attacking(self, target, this, barrel);
 
 			Recoil = Info.Recoil;
 
@@ -162,14 +162,6 @@ namespace OpenRA.Mods.RA
 				FireDelay = Weapon.ROF;
 				Burst = Weapon.Burst;
 			}
-		}
-
-		public bool IsValidAgainst(World world, Target target)
-		{
-			if (target.IsActor)
-				return Combat.WeaponValidForTarget(Weapon, target.Actor);
-			else
-				return Combat.WeaponValidForTarget(Weapon, world, target.CenterLocation.ToCPos());
 		}
 
 		public bool IsReloading { get { return FireDelay > 0; } }

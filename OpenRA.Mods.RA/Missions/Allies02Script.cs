@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.FileFormats;
+using OpenRA.Graphics;
 using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Air;
 using OpenRA.Mods.RA.Buildings;
@@ -28,27 +29,19 @@ namespace OpenRA.Mods.RA.Missions
 	{
 		public event Action<bool> OnObjectivesUpdated = notify => { };
 
-		public IEnumerable<Objective> Objectives { get { return objectives.Values; } }
+		public IEnumerable<Objective> Objectives { get { return new[] { findEinstein, destroySamSites, extractEinstein, maintainPresence, fewDeaths }; } }
 
-		Dictionary<int, Objective> objectives = new Dictionary<int, Objective>()
-		{
-			{ FindEinsteinID, new Objective(ObjectiveType.Primary, FindEinstein, ObjectiveStatus.InProgress) },
-			{ DestroySamSitesID, new Objective(ObjectiveType.Primary, DestroySamSites, ObjectiveStatus.InProgress) },
-			{ ExtractEinsteinID, new Objective(ObjectiveType.Primary, ExtractEinstein, ObjectiveStatus.Inactive) },
-			{ MaintainPresenceID, new Objective(ObjectiveType.Primary, MaintainPresence, ObjectiveStatus.InProgress) },
-			{ FewDeathsID, new Objective(ObjectiveType.Secondary, "", ObjectiveStatus.InProgress) }
-		};
+		Objective findEinstein = new Objective(ObjectiveType.Primary, FindEinsteinText, ObjectiveStatus.InProgress);
+		Objective destroySamSites = new Objective(ObjectiveType.Primary, DestroySamSitesText, ObjectiveStatus.InProgress);
+		Objective extractEinstein = new Objective(ObjectiveType.Primary, ExtractEinsteinText, ObjectiveStatus.Inactive);
+		Objective maintainPresence = new Objective(ObjectiveType.Primary, MaintainPresenceText, ObjectiveStatus.InProgress);
+		Objective fewDeaths = new Objective(ObjectiveType.Secondary, "", ObjectiveStatus.InProgress);
 
-		const int FindEinsteinID = 0;
-		const int DestroySamSitesID = 1;
-		const int ExtractEinsteinID = 2;
-		const int MaintainPresenceID = 3;
-		const int FewDeathsID = 4;
+		const string FindEinsteinText = "Find Einstein's crashed helicopter. Tanya must survive.";
+		const string DestroySamSitesText = "Destroy the SAM sites. Tanya must survive.";
+		const string ExtractEinsteinText = "Wait for the helicopter and extract Einstein. Tanya and Einstein must survive.";
+		const string MaintainPresenceText = "Maintain an Allied presence in the area. Reinforcements will arrive soon.";
 
-		const string FindEinstein = "Find Einstein's crashed helicopter. Tanya must survive.";
-		const string DestroySamSites = "Destroy the SAM sites. Tanya must survive.";
-		const string ExtractEinstein = "Wait for the helicopter and extract Einstein. Tanya and Einstein must survive.";
-		const string MaintainPresence = "Maintain an Allied presence in the area. Reinforcements will arrive soon.";
 		const string FewDeathsTemplate = "Lose fewer than {0}/{1} units.";
 
 		const int DeathsThreshold = 200;
@@ -151,7 +144,7 @@ namespace OpenRA.Mods.RA.Missions
 			if (allies1.WinState != WinState.Undefined) return;
 
 			if (world.FrameNumber % 50 == 1 && chinookHusk.IsInWorld)
-				world.Add(new Smoke(world, chinookHusk.CenterLocation, "smoke_m"));
+				world.Add(new Smoke(world, chinookHusk.CenterPosition, "smoke_m"));
 
 			if (world.FrameNumber == 1)
 			{
@@ -177,8 +170,8 @@ namespace OpenRA.Mods.RA.Missions
 			{
 				if (yak == null || (yak != null && !yak.IsDead() && (yak.GetCurrentActivity() is FlyCircle || yak.IsIdle)))
 				{
-					var alliedUnitsNearYakPoint = world.FindAliveCombatantActorsInCircle(yakAttackPoint.CenterLocation, 10)
-						.Where(a => a.Owner != soviets && a.HasTrait<IMove>() && a != tanya && a != einstein && a != engineer);
+					var alliedUnitsNearYakPoint = world.FindAliveCombatantActorsInCircle(yakAttackPoint.CenterPosition, WRange.FromCells(10))
+						.Where(a => a.Owner != soviets && a.HasTrait<IPositionable>() && a != tanya && a != einstein && a != engineer);
 					if (alliedUnitsNearYakPoint.Any())
 						YakStrafe(alliedUnitsNearYakPoint);
 				}
@@ -195,44 +188,45 @@ namespace OpenRA.Mods.RA.Missions
 
 			UpdateDeaths();
 
-			if (objectives[FindEinsteinID].Status == ObjectiveStatus.InProgress)
+			if (findEinstein.Status == ObjectiveStatus.InProgress)
 			{
 				if (AlliesNearTown())
 				{
-					objectives[FindEinsteinID].Status = ObjectiveStatus.Completed;
+					findEinstein.Status = ObjectiveStatus.Completed;
 					OnObjectivesUpdated(true);
 					TransferTownUnitsToAllies();
 					SovietsAttackTown();
 				}
 			}
-			if (objectives[DestroySamSitesID].Status == ObjectiveStatus.InProgress)
+			if (destroySamSites.Status == ObjectiveStatus.InProgress)
 			{
 				if (sams.All(s => s.IsDead() || s.Owner != soviets))
 				{
-					objectives[DestroySamSitesID].Status = ObjectiveStatus.Completed;
-					objectives[ExtractEinsteinID].Status = ObjectiveStatus.InProgress;
+					destroySamSites.Status = ObjectiveStatus.Completed;
+					extractEinstein.Status = ObjectiveStatus.InProgress;
+
 					OnObjectivesUpdated(true);
+
 					world.CreateActor(SignalFlareName, new TypeDictionary { new OwnerInit(allies1), new LocationInit(extractionLZ.Location) });
 					Sound.Play("flaren1.aud");
 					ExtractEinsteinAtLZ();
 				}
 			}
-			if (objectives[ExtractEinsteinID].Status == ObjectiveStatus.InProgress && einsteinChinook != null)
+			if (extractEinstein.Status == ObjectiveStatus.InProgress && einsteinChinook != null)
 			{
 				if (einsteinChinook.IsDead())
 				{
-					objectives[ExtractEinsteinID].Status = ObjectiveStatus.Failed;
-					objectives[MaintainPresenceID].Status = ObjectiveStatus.Failed;
+					extractEinstein.Status = ObjectiveStatus.Failed;
 					OnObjectivesUpdated(true);
 					MissionFailed("The extraction helicopter was destroyed.");
 				}
 				else if (!world.Map.IsInMap(einsteinChinook.Location) && einsteinChinook.Trait<Cargo>().Passengers.Contains(einstein))
 				{
-					objectives[ExtractEinsteinID].Status = ObjectiveStatus.Completed;
-					objectives[MaintainPresenceID].Status = ObjectiveStatus.Completed;
+					extractEinstein.Status = ObjectiveStatus.Completed;
+					maintainPresence.Status = ObjectiveStatus.Completed;
 
-					if (objectives[FewDeathsID].Status == ObjectiveStatus.InProgress)
-						objectives[FewDeathsID].Status = ObjectiveStatus.Completed;
+					if (fewDeaths.Status == ObjectiveStatus.InProgress)
+						fewDeaths.Status = ObjectiveStatus.Completed;
 
 					OnObjectivesUpdated(true);
 					MissionAccomplished("Einstein was rescued.");
@@ -247,10 +241,10 @@ namespace OpenRA.Mods.RA.Missions
 
 			world.AddFrameEndTask(w =>
 			{
-				if (!w.FindAliveCombatantActorsInBox(alliedBaseTopLeft.ToPPos(), alliedBaseBottomRight.ToPPos())
+				if (!w.FindAliveCombatantActorsInBox(alliedBaseTopLeft, alliedBaseBottomRight)
 					.Any(a => (a.Owner == allies || a.Owner == allies2) && (a.HasTrait<Building>() && !a.HasTrait<Wall>()) || a.HasTrait<BaseBuilding>()))
 				{
-					objectives[MaintainPresenceID].Status = ObjectiveStatus.Failed;
+					maintainPresence.Status = ObjectiveStatus.Failed;
 					OnObjectivesUpdated(true);
 					MissionFailed("The Allied reinforcements have been defeated.");
 				}
@@ -259,12 +253,12 @@ namespace OpenRA.Mods.RA.Missions
 
 		void UpdateDeaths()
 		{
-			var unitDeaths = allies1.Deaths + allies2.Deaths;
-			objectives[FewDeathsID].Text = FewDeathsTemplate.F(unitDeaths, DeathsThreshold);
+			var unitDeaths = allies1.PlayerActor.Trait<PlayerStatistics>().UnitsDead + allies2.PlayerActor.Trait<PlayerStatistics>().UnitsDead;
+			fewDeaths.Text = FewDeathsTemplate.F(unitDeaths, DeathsThreshold);
 			OnObjectivesUpdated(false);
-			if (unitDeaths >= DeathsThreshold && objectives[FewDeathsID].Status == ObjectiveStatus.InProgress)
+			if (unitDeaths >= DeathsThreshold && fewDeaths.Status == ObjectiveStatus.InProgress)
 			{
-				objectives[FewDeathsID].Status = ObjectiveStatus.Failed;
+				fewDeaths.Status = ObjectiveStatus.Failed;
 				OnObjectivesUpdated(true);
 			}
 		}
@@ -277,7 +271,7 @@ namespace OpenRA.Mods.RA.Missions
 				{
 					new LocationInit(yakEntryPoint.Location),
 					new OwnerInit(soviets),
-					new FacingInit(Util.GetFacing(yakAttackPoint.Location - yakEntryPoint.Location, 0)),
+					new FacingInit(Traits.Util.GetFacing(yakAttackPoint.Location - yakEntryPoint.Location, 0)),
 					new AltitudeInit(Rules.Info[YakName].Traits.Get<PlaneInfo>().CruiseAltitude)
 				});
 			}
@@ -306,7 +300,7 @@ namespace OpenRA.Mods.RA.Missions
 
 		void ManageSovietUnits()
 		{
-			var units = world.FindAliveCombatantActorsInCircle(sovietRallyPoint.CenterLocation, 10)
+			var units = world.FindAliveCombatantActorsInCircle(sovietRallyPoint.CenterPosition, WRange.FromCells(10))
 				.Where(u => u.IsIdle && u.HasTrait<Mobile>() && u.HasTrait<AttackBase>() && u.Owner == soviets)
 				.Except(world.WorldActor.Trait<SpawnMapActors>().Actors.Values);
 			if (units.Count() >= SovietGroupSize)
@@ -329,7 +323,6 @@ namespace OpenRA.Mods.RA.Missions
 			foreach (var actor in world.Actors.Where(a => a.Owner == allies && a != allies.PlayerActor))
 			{
 				actor.ChangeOwner(allies2);
-				Capturable.ChangeCargoOwner(actor, allies2);
 				if (actor.Info.Name == "proc")
 					actor.QueueActivity(new Transform(actor, "proc") { SkipMakeAnims = true }); // for harv spawn
 				foreach (var c in actor.TraitsImplementing<INotifyCapture>())
@@ -391,29 +384,29 @@ namespace OpenRA.Mods.RA.Missions
 
 		bool AlliesNearTown()
 		{
-			return world.FindAliveCombatantActorsInCircle(townPoint.CenterLocation, AlliedTownTransferRange)
-				.Any(a => a.Owner == allies1 && a.HasTrait<IMove>());
+			return world.FindAliveCombatantActorsInCircle(townPoint.CenterPosition, WRange.FromCells(AlliedTownTransferRange))
+				.Any(a => a.Owner == allies1 && a.HasTrait<IPositionable>());
 		}
 
 		void TransferTownUnitsToAllies()
 		{
-			foreach (var unit in world.FindAliveNonCombatantActorsInCircle(townPoint.CenterLocation, AlliedTownTransferRange)
+			foreach (var unit in world.FindAliveNonCombatantActorsInCircle(townPoint.CenterPosition, WRange.FromCells(AlliedTownTransferRange))
 				.Where(a => a.HasTrait<Mobile>()))
 				unit.ChangeOwner(allies1);
 		}
 
 		void SovietsAttackTown()
 		{
-			var sovietAttackUnits = world.FindAliveCombatantActorsInCircle(sovietTownAttackPoint1.CenterLocation, SovietTownAttackGroupRange)
-				.Union(world.FindAliveCombatantActorsInCircle(sovietTownAttackPoint2.CenterLocation, SovietTownAttackGroupRange))
-				.Union(world.FindAliveCombatantActorsInCircle(townPoint.CenterLocation, AlliedTownTransferRange))
-				.Where(a => a.HasTrait<IMove>() && a.Owner == soviets);
+			var sovietAttackUnits = world.FindAliveCombatantActorsInCircle(sovietTownAttackPoint1.CenterPosition, WRange.FromCells(SovietTownAttackGroupRange))
+				.Union(world.FindAliveCombatantActorsInCircle(sovietTownAttackPoint2.CenterPosition, WRange.FromCells(SovietTownAttackGroupRange)))
+				.Union(world.FindAliveCombatantActorsInCircle(townPoint.CenterPosition, WRange.FromCells(AlliedTownTransferRange)))
+				.Where(a => a.HasTrait<IPositionable>() && a.Owner == soviets);
 
 			foreach (var unit in sovietAttackUnits)
 				unit.QueueActivity(new AttackMove.AttackMoveActivity(unit, new Move.Move(townPoint.Location, SovietTownMoveNearEnough)));
 		}
 
-		public void WorldLoaded(World w)
+		public void WorldLoaded(World w, WorldRenderer wr)
 		{
 			world = w;
 
@@ -475,10 +468,9 @@ namespace OpenRA.Mods.RA.Missions
 			shroud.Explore(w, sam4.Location, 2);
 
 			if (w.LocalPlayer == null || w.LocalPlayer == allies1)
-				Game.MoveViewport(chinookHusk.Location.ToFloat2());
-
+				wr.Viewport.Center(chinookHusk.CenterPosition);
 			else
-				Game.MoveViewport(allies2BasePoint.Location.ToFloat2());
+				wr.Viewport.Center(allies2BasePoint.CenterPosition);
 
 			MissionUtils.PlayMissionMusic();
 		}

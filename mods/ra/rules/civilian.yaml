@@ -72,12 +72,22 @@ FCOM:
 
 HOSP:
 	Inherits: ^TechBuilding
+	Selectable:
+		Priority: 0
 	Building:
 		Footprint: xx xx
 		Dimensions: 2,2
+	Health:
+		HP: 1000
+	ExternalCapturable:
+	ExternalCapturableBar:
+	EngineerRepairable:
+	SelfHealingTech:
+		Type: InfantryHealing
 	Tooltip:
 		Name: Hospital
-	RepairsUnits:
+	RevealsShroud:
+		Range: 3
 
 V01:
 	Inherits: ^CivBuilding
@@ -92,8 +102,8 @@ V01:
 		IntoActor: v01.sniper
 		SkipMakeAnims: true
 	Capturable:
-		Type: civilianbuilding
-		CaptureCompleteTime: 0
+		Type: CivilianBuilding
+		CaptureThreshold: 1
 	EditorTilesetFilter:
 		ExcludeTilesets: DESERT
 
@@ -232,6 +242,19 @@ V19:
 		ExcludeTilesets: DESERT
 	Tooltip:
 		Name: Oil Pump
+	LeavesHusk: 
+		HuskActor: V19.Husk
+	AutoTargetIgnore:
+
+V19.Husk:
+	Inherits: ^CivBuilding
+	EditorTilesetFilter:
+		ExcludeTilesets: DESERT
+	Tooltip:
+		Name: Husk (Oil Pump)
+	WithFire:
+	-Health:
+	-Selectable:
 
 BARL:
 	Inherits: ^TechBuilding
@@ -245,9 +268,11 @@ BARL:
 		Name: Explosive Barrel
 	AutoTargetIgnore:
 	Armor:
-		Type: Light
+		Type: None
 	TargetableBuilding:
 		TargetTypes: Ground, DemoTruck
+	-ShakeOnDeath:
+	-SoundOnDamageTransition:
 
 BRL3:
 	Inherits: ^TechBuilding
@@ -261,9 +286,20 @@ BRL3:
 		Name: Explosive Barrel
 	AutoTargetIgnore:
 	Armor:
-		Type: Light
+		Type: None
 	TargetableBuilding:
 		TargetTypes: Ground, DemoTruck
+	-ShakeOnDeath:
+	-SoundOnDamageTransition:
+
+AMMOBOX1:
+	Inherits: ^AmmoBox
+
+AMMOBOX2:
+	Inherits: ^AmmoBox
+
+AMMOBOX3:
+	Inherits: ^AmmoBox
 
 MISS:
 	Inherits: ^TechBuilding
@@ -290,7 +326,6 @@ BIO:
 	Tooltip:
 		Name: Biological Lab
 
-
 OILB:
 	Inherits: ^TechBuilding
 	Selectable:
@@ -299,19 +334,16 @@ OILB:
 		Footprint: xx xx
 		Dimensions: 2,2
 	Health:
-		HP: 400
-	Armor:
-		Type: Wood
-	Bib:
+		HP: 1000
 	RevealsShroud:
 		Range: 3
-	Capturable:
-	CapturableBar:
+	ExternalCapturable:
+	ExternalCapturableBar:
 	EngineerRepairable:
-	-MustBeDestroyed:
 	CashTrickler:
-		Period: 250
-		Amount: 50
+		Period: 375
+		Amount: 100
+		CaptureAmount: 100
 	Tooltip:
 		Name: Oil Derrick
 
@@ -504,6 +536,38 @@ V25:
 		Dimensions: 2,2
 	Tooltip:
 		Name: Church
+	RevealsShroud:
+		Range: 10
+	TransformOnCapture:
+		IntoActor: v25.sniper
+		SkipMakeAnims: true
+	Capturable:
+		Type: CivilianBuilding
+		CaptureThreshold: 1
+
+V25.SNIPER:
+	Inherits: V25
+	RenderBuilding:
+		Image: V25
+	RenderRangeCircle:
+	AutoTarget:
+	Turreted:
+		ROT: 255
+	Armament:
+		Weapon: Sniper
+		LocalOffset: 469,0,0
+	AttackTurreted:
+	Cargo:
+		InitialUnits: sniper
+		Types: Infantry
+		MaxWeight: 1
+		PipCount: 1
+	TransformOnPassenger@Sniper:
+		PassengerTypes: sniper
+		OnExit: v25
+		SkipMakeAnims: true
+		BecomeNeutral: true
+	-Capturable:
 
 V26:
 	Inherits: ^DesertCivBuilding
@@ -558,3 +622,21 @@ V37:
 	Building:
 		Footprint: __xx_ ___xx
 		Dimensions: 5,2
+
+RICE:
+	Inherits: ^CivField
+	EditorTilesetFilter:
+		RequireTilesets: TEMPERAT
+
+RUSHOUSE:
+	Inherits: ^CivBuilding
+	EditorTilesetFilter:
+		ExcludeTilesets: DESERT
+	Building:
+		Footprint: _ x
+		Dimensions: 1,2
+
+ASIANHUT:
+	Inherits: ^CivBuilding
+	EditorTilesetFilter:
+		ExcludeTilesets: DESERT

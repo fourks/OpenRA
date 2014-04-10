@@ -15,48 +15,53 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.RA
 {
 	//todo: remove all the Render*Circle duplication
-	class RenderJammerCircleInfo : TraitInfo<RenderJammerCircle>, IPlaceBuildingDecoration
+	class RenderJammerCircleInfo : ITraitInfo, IPlaceBuildingDecoration
 	{
-		public void Render(WorldRenderer wr, World w, ActorInfo ai, PPos centerLocation)
+		public void Render(WorldRenderer wr, World w, ActorInfo ai, WPos centerPosition)
 		{
 			var jamsMissiles = ai.Traits.GetOrDefault<JamsMissilesInfo>();
 			if (jamsMissiles != null)
-				RenderJammerCircle.DrawRangeCircle(wr, centerLocation.ToFloat2(), jamsMissiles.Range, Color.Red);
+				RenderJammerCircle.DrawRangeCircle(wr, centerPosition, jamsMissiles.Range, Color.Red);
 
 			var jamsRadar = ai.Traits.GetOrDefault<JamsRadarInfo>();
 			if (jamsRadar != null)
-				RenderJammerCircle.DrawRangeCircle(wr, centerLocation.ToFloat2(), jamsRadar.Range, Color.Blue);
+				RenderJammerCircle.DrawRangeCircle(wr, centerPosition, jamsRadar.Range, Color.Blue);
 
 			foreach (var a in w.ActorsWithTrait<RenderJammerCircle>())
 				if (a.Actor.Owner == a.Actor.World.LocalPlayer)
-					a.Trait.RenderBeforeWorld(wr, a.Actor);
+					a.Trait.RenderAfterWorld(wr);
 		}
+
+		public object Create(ActorInitializer init) { return new RenderJammerCircle(init.self); }
 	}
 
-	public class RenderJammerCircle : IPreRenderSelection
+	class RenderJammerCircle : IPostRenderSelection
 	{
-		public void RenderBeforeWorld(WorldRenderer wr, Actor self)
+		Actor self;
+
+		public RenderJammerCircle(Actor self) { this.self = self; }
+
+		public void RenderAfterWorld(WorldRenderer wr)
 		{
 			if (self.Owner != self.World.LocalPlayer)
 				return;
 
 			var jamsMissiles = self.Info.Traits.GetOrDefault<JamsMissilesInfo>();
 			if (jamsMissiles != null)
-				DrawRangeCircle(wr, self.CenterLocation.ToFloat2(), jamsMissiles.Range, Color.Red);
+				DrawRangeCircle(wr, self.CenterPosition, jamsMissiles.Range, Color.Red);
 
 			var jamsRadar = self.Info.Traits.GetOrDefault<JamsRadarInfo>();
 			if (jamsRadar != null)
-				DrawRangeCircle(wr, self.CenterLocation.ToFloat2(), jamsRadar.Range, Color.Blue);
+				DrawRangeCircle(wr, self.CenterPosition, jamsRadar.Range, Color.Blue);
 		}
 
-		public static void DrawRangeCircle(WorldRenderer wr, float2 location, int range, Color color)
+		public static void DrawRangeCircle(WorldRenderer wr, WPos pos, int range, Color color)
 		{
 			wr.DrawRangeCircleWithContrast(
 				Color.FromArgb(128, color),
-				location,
+				wr.ScreenPxPosition(pos),
 				range,
-				Color.FromArgb(96, Color.Black),
-				1);
+				Color.FromArgb(96, Color.Black));
 		}
 	}
 }

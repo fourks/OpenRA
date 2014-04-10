@@ -10,8 +10,6 @@
 
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
 using System.Threading;
 using OpenRA.FileFormats;
 using OpenRA.Graphics;
@@ -26,16 +24,16 @@ namespace OpenRA.Mods.RA.Widgets
 		public event Action OnChange = () => {};
 
 		float H, S, V;
-		Bitmap frontBitmap, swapBitmap, backBitmap;
+		byte[] front, back;
 		Sprite mixerSprite;
 		bool isMoving;
 
-		bool updateFront, updateBack;
+		bool update;
 		object syncWorker = new object();
 		Thread workerThread;
 		bool workerAlive;
 
-		public ColorMixerWidget() : base() {}
+		public ColorMixerWidget() {}
 		public ColorMixerWidget(ColorMixerWidget other)
 			: base(other)
 		{
@@ -50,13 +48,12 @@ namespace OpenRA.Mods.RA.Widgets
 			base.Initialize(args);
 
 			// Bitmap data is generated in a background thread and then flipped
-			frontBitmap = new Bitmap(256, 256);
-			swapBitmap = new Bitmap(256, 256);
-			backBitmap = new Bitmap(256, 256);
+			front = new byte[4*256*256];
+			back = new byte[4*256*256];
 
 			var rect = new Rectangle((int)(255*SRange[0]), (int)(255*(1 - VRange[1])), (int)(255*(SRange[1] - SRange[0]))+1, (int)(255*(VRange[1] - VRange[0])) + 1);
 			mixerSprite = new Sprite(new Sheet(new Size(256, 256)), rect, TextureChannel.Alpha);
-			mixerSprite.sheet.Texture.SetData(frontBitmap);
+			mixerSprite.sheet.Texture.SetData(front, 256, 256);
 		}
 
 		void GenerateBitmap()
@@ -65,7 +62,7 @@ namespace OpenRA.Mods.RA.Widgets
 			// so we do it in a background thread
 			lock (syncWorker)
 			{
-				updateBack = true;
+				update = true;
 
 				if (workerThread == null || !workerAlive)
 				{
@@ -85,53 +82,52 @@ namespace OpenRA.Mods.RA.Widgets
 				float hue;
 				lock (syncWorker)
 				{
-					if (!updateBack)
+					if (!update)
 					{
 						workerAlive = false;
 						break;
 					}
-					updateBack = false;
+					update = false;
 
 					// Take a local copy of the hue to generate to avoid tearing
 					hue = H;
 				}
 
-				var bitmapData = backBitmap.LockBits(backBitmap.Bounds(),
-					ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
-
-				unsafe
+				lock (back)
 				{
-					int* c = (int*)bitmapData.Scan0;
+					unsafe
+					{
+						// Generate palette in HSV
+						fixed (byte* cc = &back[0])
+						{
+							var c = (int*)cc;
+							for (var v = 0; v < 256; v++)
+								for (var s = 0; s < 256; s++)
+									*(c + (v * 256) + s) = HSLColor.FromHSV(hue, s / 255f, (255 - v) / 255f).RGB.ToArgb();
+						}
+					}
 
-					// Generate palette in HSV
-					for (var v = 0; v < 256; v++)
-						for (var s = 0; s < 256; s++)
-							*(c + (v * bitmapData.Stride >> 2) + s) = HSLColor.FromHSV(hue, s / 255f, (255 - v) / 255f).RGB.ToArgb();
-				}
-
-				backBitmap.UnlockBits(bitmapData);
-				lock (syncWorker)
-				{
-					var swap = swapBitmap;
-					swapBitmap = backBitmap;
-					backBitmap = swap;
-					updateFront = true;
+					lock (front)
+					{
+						var swap = front;
+						front = back;
+						back = swap;
+					}
 				}
 			}
 		}
 
 		public override void Draw()
 		{
-			lock (syncWorker)
+			if (Monitor.TryEnter(front))
 			{
-				if (updateFront)
+				try
 				{
-					var swap = swapBitmap;
-					swapBitmap = frontBitmap;
-					frontBitmap = swap;
-
-					mixerSprite.sheet.Texture.SetData(frontBitmap);
-					updateFront = false;
+					mixerSprite.sheet.Texture.SetData(front, 256, 256);
+				}
+				finally
+				{
+					Monitor.Exit(front);
 				}
 			}
 
@@ -164,16 +160,16 @@ namespace OpenRA.Mods.RA.Widgets
 		{
 			if (mi.Button != MouseButton.Left)
 				return false;
-			if (mi.Event == MouseInputEvent.Down && !TakeFocus(mi))
+			if (mi.Event == MouseInputEvent.Down && !TakeMouseFocus(mi))
 				return false;
-			if (!Focused)
+			if (!HasMouseFocus)
 				return false;
 
 			switch (mi.Event)
 			{
 			case MouseInputEvent.Up:
 				isMoving = false;
-				LoseFocus(mi);
+				YieldMouseFocus(mi);
 				break;
 
 			case MouseInputEvent.Down:

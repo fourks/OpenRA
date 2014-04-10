@@ -1,12 +1,23 @@
 CONYARDH:
 	Inherits: ^CONYARD
-	Transforms:
-		IntoActor: mcvh
-		Offset:1,1
-		Facing: 270
 
 PWRH:
 	Inherits: ^POWER
+	Buildable:
+		Owner: harkonnen
+
+WALLH:
+	Inherits: ^WALL
+	Buildable:
+		Owner: harkonnen
+
+GUNTOWERH:
+	Inherits: ^GUNTOWER
+	Buildable:
+		Owner: harkonnen
+
+ROCKETTOWERH:
+	Inherits: ^ROCKETTOWER
 	Buildable:
 		Owner: harkonnen
 
@@ -22,6 +33,16 @@ BARRH:
 	Buildable:
 		Owner: harkonnen
 	-RepairsUnits:
+
+REPAIRH:
+	Inherits: ^REPAIR
+	Buildable:
+		Owner: harkonnen
+
+RESEARCHH:
+	Inherits: ^RESEARCH
+	Buildable:
+		Owner: harkonnen
 
 SILOH:
 	Inherits: ^SILO
@@ -64,16 +85,17 @@ PALACEH:
 	Tooltip:
 		Description: Provides elite infantry\n  Special Ability: Death Hand Missile
 	NukePower:
-		Image: deathhandicon
+		Icon: deathhand
 		ChargeTime: 300
 		Description: Death Hand
 		LongDesc: Launches a nuclear missile at a target location
 		BeginChargeSound: HI_PREP.AUD
 		EndChargeSound: HI_DHRDY.AUD
-		SelectTargetSound: 
+		SelectTargetSound:
 		LaunchSound:
+		IncomingSound:
 		MissileWeapon: atomic
-		SpawnOffset: 28,12
+		SpawnOffset:-512,1c171,0
 	CanPowerDown:
 	RequiresPower:
 	SupportPowerChargeBar:
@@ -82,7 +104,6 @@ MCVH:
 	Inherits: ^MCV
 	Buildable:
 		Owner: harkonnen
-		BuiltAt: heavyh
 	Transforms:
 		Facing: 16
 		IntoActor: conyardh
@@ -95,43 +116,8 @@ MCVH.starport:
 	Inherits: MCVH
 	Buildable:
 		Queue: Starport
-		BuiltAt: starporth
 	Valued:
 		Cost: 2500
-
-#TRIKEH:
-#	Inherits: ^TRIKE
-#	Buildable:
-#		Owner: harkonnen
-#		BuiltAt: lighth
-#	Valued:
-#		Cost: 250
-#	Tooltip:
-#		Name: Scout Quad
-#		Description: Heavy Scout\n Strong vs Infantry
-#		Icon: quadicon
-#	Health:
-#		HP: 125
-#	Mobile:
-#		ROT: 9
-#		Speed: 11
-#	Armament:
-#		Weapon: M60mg
-#		LocalOffset: 43,0,128
-#	AttackFrontal:
-#	RenderUnit:
-#		Image: QUAD
-
-#TRIKEH.starport:
-#	Inherits: ^TRIKE
-#	Buildable:
-#		Owner: harkonnen
-#		Queue: Starport
-#		BuiltAt: starporth
-#	Valued:
-#		Cost: 149
-#	RenderUnit:
-#		Image: TRIKE
 
 CARRYALLH:
 	Inherits: ^CARRYALL
@@ -143,19 +129,10 @@ CARRYALLH.starport:
 	Valued:
 		Cost: 1500
 
-QUADH:
-	Inherits: QUAD
-	Buildable:
-		-Prerequisites:
-		Owner: harkonnen
-
 COMBATH:
 	Inherits: ^COMBAT
-	Tooltip:
-		Icon: combathicon
 	Buildable:
 		Owner: harkonnen
-		BuiltAt: heavyh
 	Mobile:
 		Speed: 5
 		ROT: 4
@@ -163,15 +140,14 @@ COMBATH:
 		ROT: 5
 	Health:
 		HP: 440
-	RenderUnitTurreted:
+	RenderUnit:
 		Image: COMBATH
+	WithTurret:
 	LeavesHusk:
 		HuskActor: Combath.Husk
 
 COMBATH.Husk:
 	Inherits: ^COMBAT.Husk
-	Tooltip:
-		Icon: combathicon
 	RenderUnit:
 		Image: COMBATH
 
@@ -179,7 +155,6 @@ COMBATH.starport:
 	Inherits: COMBATH
 	Buildable:
 		Queue: Starport
-		BuiltAt: starporth
 	Valued:
 		Cost: 875
 
@@ -188,16 +163,14 @@ DEVAST:
 	Buildable:
 		Queue: Armor
 		BuildPaletteOrder: 100
-		Prerequisites: Ix
+		Prerequisites: Research
 		Owner: harkonnen
-		BuiltAt: heavyh
 		Hotkey: d
 	Valued:
 		Cost: 1200
 	Tooltip:
 		Name: Devastator
 		Description: Super Heavy Tank\n  Strong vs Tanks\n  Weak vs Artillery, Aircraft
-		Icon: devasticon
 	Health:
 		HP: 650
 	Armor:
@@ -211,11 +184,10 @@ DEVAST:
 	RenderUnit:
 	Armament:
 		Weapon: DevBullet
-		LocalOffset: 683,213,85, 683,-171,85
+		LocalOffset: 256,0,32
 	AttackFrontal:
+	WithMuzzleFlash:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Explodes:
 		Weapon: UnitExplodeScale
 		EmptyWeapon: UnitExplodeScale
@@ -228,8 +200,6 @@ DEVAST.Husk:
 	Inherits: ^Husk
 	Health:
 		HP: 125
-	Tooltip:
-		Icon: devasticon
 	RenderUnit:
 		Image: DEVAST
 
@@ -258,6 +228,7 @@ SARDAUKAR:
 	TakeCover:
 	-RenderInfantry:
 	RenderInfantryProne:
+		IdleAnimations: stand,stand2
 	Armament@PRIMARY:
 		Weapon: Vulcan
 	Armament@SECONDARY:

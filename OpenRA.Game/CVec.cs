@@ -51,6 +51,7 @@ namespace OpenRA
 
 		public float2 ToFloat2() { return new float2(X, Y); }
 		public int2 ToInt2() { return new int2(X, Y); }
+		public WVec ToWVec() { return new WVec(X*1024, Y*1024, 0); }
 
 		public CVec Clamp(Rectangle r)
 		{
@@ -64,13 +65,22 @@ namespace OpenRA
 
 		public override bool Equals(object obj)
 		{
-			if (obj == null)
-				return false;
-
-			CVec o = (CVec)obj;
-			return o == this;
+			var o = obj as CVec?;
+			return o != null && o == this;
 		}
 
 		public override string ToString() { return "{0},{1}".F(X, Y); }
+
+		public static readonly CVec[] directions =
+		{
+			new CVec(-1, -1),
+			new CVec(-1,  0),
+			new CVec(-1,  1),
+			new CVec(0, -1),
+			new CVec(0,  1),
+			new CVec(1, -1),
+			new CVec(1,  0),
+			new CVec(1,  1),
+		};
 	}
 }

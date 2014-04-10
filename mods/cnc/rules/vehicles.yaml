@@ -4,7 +4,6 @@ MCV:
 		Cost: 2000
 	Tooltip:
 		Name: Mobile Construction Vehicle
-		Icon: mcvicnh
 		Description: Deploys into another Construction Yard.\n  Unarmed
 	Buildable:
 		BuildPaletteOrder: 100
@@ -34,7 +33,7 @@ MCV:
 	LeavesHusk:
 		HuskActor: MCV.Husk
 	-GainsExperience:
-	-AcceptsCloakCrate:
+	-Cloak:
 	Explodes:
 		Weapon: UnitExplodeSmall
 		EmptyWeapon: UnitExplodeSmall
@@ -45,7 +44,6 @@ HARV:
 		Cost: 1200
 	Tooltip:
 		Name: Harvester
-		Icon: harvicnh
 		Description: Collects Tiberium for processing.\n  Unarmed
 	Buildable:
 		BuildPaletteOrder: 10
@@ -58,10 +56,9 @@ HARV:
 		Resources: Tiberium, BlueTiberium
 		PipCount: 7
 		Capacity: 20
-		UnloadTicksPerBale: 12		# hardcoded default is 4
-		# How far away from our linked proc (refinery) to find resources (in cells):
+		LoadTicksPerBale: 6
+		UnloadTicksPerBale: 12
 		SearchFromProcRadius: 24
-		# How far away from last harvest order location to find more resources (in cells):
 		SearchFromOrderRadius: 12
 	Mobile:
 		Speed: 6
@@ -71,12 +68,12 @@ HARV:
 		Type: Heavy
 	RevealsShroud:
 		Range: 4
-	RenderUnit:
 	AttackMove:
 		JustMove:true
 	LeavesHusk:
 		HuskActor: HARV.Husk
 	-GainsExperience:
+	RenderHarvester:
 
 APC:
 	Inherits: ^Tank
@@ -84,7 +81,6 @@ APC:
 		Cost: 600
 	Tooltip:
 		Name: APC
-		Icon: apcicnh
 		Description: Armored infantry transport and mobile AA\n  Strong vs Aircraft, Vehicles\n  Weak vs Infantry
 	Buildable:
 		BuildPaletteOrder: 30
@@ -107,16 +103,18 @@ APC:
 		RecoilRecovery: 18
 		LocalOffset: 85,85,299, 85,-85,299
 	Armament@SECONDARY:
+		Name: secondary
 		Weapon: APCGun.AA
 		Recoil: 96
 		RecoilRecovery: 18
 		LocalOffset: 85,85,299, 85,-85,299
 	AttackTurreted:
-	WithMuzzleFlash:
-	RenderUnitTurreted:
+	WithMuzzleFlash@PRIMARY:
+	WithMuzzleFlash@SECONDARY:
+		Armament: secondary
+	RenderUnit:
+	WithTurret:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Cargo:
 		Types: Infantry
 		MaxWeight: 5
@@ -131,7 +129,6 @@ ARTY:
 		Cost: 600
 	Tooltip:
 		Name: Artillery
-		Icon:artyicnh
 		Description: Long-range artillery.\n  Strong vs Infantry, Vehicles\n  Weak vs Tanks, Aircraft
 	Buildable:
 		BuildPaletteOrder: 60
@@ -148,16 +145,15 @@ ARTY:
 		Range: 9
 	Armament:
 		Weapon: ArtilleryShell
-		LocalOffset: 299, 0, 128
+		LocalOffset: 624,0,208
 	AttackFrontal:
+	WithMuzzleFlash:
 	RenderUnit:
 	Explodes:
 		Weapon: UnitExplode
 		EmptyWeapon: UnitExplode
 	AutoTarget:
 		InitialStance: Defend
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: ARTY.Husk
 
@@ -167,7 +163,6 @@ FTNK:
 		Cost: 800
 	Tooltip:
 		Name: Flame Tank
-		Icon: ftnkicnh
 		Description: Heavily armored flame-throwing vehicle.\n  Strong vs Infantry, Buildings, Vehicles\n  Weak vs Aircraft
 	Buildable:
 		BuildPaletteOrder: 50
@@ -184,13 +179,12 @@ FTNK:
 		Range: 5
 	Armament:
 		Weapon: BigFlamer
-		LocalOffset: 213,213,-85, 213,-213,-85
+		LocalOffset: 512,128,42, 512,-128,42
 	AttackFrontal:
 	RenderUnit:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	WithMuzzleFlash:
+		SplitFacings: true
 	Explodes:
 		Weapon: FlametankExplode
 		EmptyWeapon: FlametankExplode
@@ -203,7 +197,6 @@ BGGY:
 		Cost: 300
 	Tooltip:
 		Name: Nod Buggy
-		Icon: bggyicnh
 		Description: Fast scout & anti-infantry vehicle.\n  Strong vs Infantry, Vehicles\n  Weak vs Tanks, Aircraft
 	Buildable:
 		BuildPaletteOrder: 20
@@ -223,12 +216,12 @@ BGGY:
 		Offset: -43,0,128
 	Armament:
 		Weapon: MachineGun
+		LocalOffset: 171,0,43
 	AttackTurreted:
 	WithMuzzleFlash:
-	RenderUnitTurreted:
+	RenderUnit:
+	WithTurret:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: BGGY.Husk
 
@@ -238,7 +231,6 @@ BIKE:
 		Cost: 500
 	Tooltip:
 		Name: Recon Bike
-		Icon: bikeicnh
 		Description: Fast scout vehicle, armed with \nrockets.\n  Strong vs Vehicles, Aircraft\n  Weak vs Infantry
 	Buildable:
 		BuildPaletteOrder: 30
@@ -256,7 +248,7 @@ BIKE:
 			Beach: 35
 	Health:
 		HP: 120
-	Armor: 
+	Armor:
 		Type: Light
 	RevealsShroud:
 		Range: 8
@@ -267,8 +259,6 @@ BIKE:
 	AttackFrontal:
 	RenderUnit:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: BIKE.Husk
 	
@@ -278,7 +268,6 @@ JEEP:
 		Cost: 400
 	Tooltip:
 		Name: Hum-Vee
-		Icon: jeepicnh
 		Description: Fast scout & anti-infantry vehicle.\n  Strong vs Infantry, Vehicles\n  Weak vs Tanks, Aircraft
 	Buildable:
 		BuildPaletteOrder: 20
@@ -295,15 +284,15 @@ JEEP:
 		Range: 8
 	Turreted:
 		ROT: 10
-		Offset: -85,0,171
+		Offset: -85,0,128
 	Armament:
 		Weapon: MachineGun
+		LocalOffset: 171,0,85
 	AttackTurreted:
 	WithMuzzleFlash:
-	RenderUnitTurreted:
+	RenderUnit:
+	WithTurret:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: JEEP.Husk
 
@@ -313,7 +302,6 @@ LTNK:
 		Cost: 600
 	Tooltip:
 		Name: Light Tank
-		Icon: ltnkicnh
 		Description: Fast, light tank.\n  Strong vs Vehicles, Tanks\n  Weak vs Infantry, Aircraft
 	Buildable:
 		BuildPaletteOrder: 40
@@ -334,12 +322,12 @@ LTNK:
 		Weapon: 70mm
 		Recoil: 85
 		RecoilRecovery: 17
-		LocalOffset: -128,0,85
+		LocalOffset: 720,0,90
 	AttackTurreted:
-	RenderUnitTurreted:
+	WithMuzzleFlash:
+	RenderUnit:
+	WithTurret:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: LTNK.Husk
 	Explodes:
@@ -352,7 +340,6 @@ MTNK:
 		Cost: 800
 	Tooltip:
 		Name: Med. Tank
-		Icon: mtnkicnh
 		Description: General-Purpose GDI Tank.\n  Strong vs Tanks, Vehicles\n  Weak vs Infantry, Aircraft
 	Buildable:
 		BuildPaletteOrder: 40
@@ -372,12 +359,12 @@ MTNK:
 		Weapon: 120mm
 		Recoil: 128
 		RecoilRecovery: 26
-		LocalOffset: 0,0,43
+		LocalOffset: 768,0,90
 	AttackTurreted:
-	RenderUnitTurreted:
+	WithMuzzleFlash:
+	RenderUnit:
+	WithTurret:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: MTNK.Husk
 	Explodes:
@@ -392,7 +379,6 @@ HTNK:
 		Cost: 1500
 	Tooltip:
 		Name: Mammoth Tank
-		Icon: htnkicnh
 		Description: Heavily armored GDI Tank.\n  Strong vs Everything
 	Buildable:
 		BuildPaletteOrder: 60
@@ -412,19 +398,20 @@ HTNK:
 		ROT: 3
 	Armament@PRIMARY:
 		Weapon: 120mmDual
-		LocalOffset: 800, 180, 340, 800, -180, 340
+		LocalOffset: 900,180,340, 900,-180,340
 		Recoil: 170
 		RecoilRecovery: 42
 	Armament@SECONDARY:
+		Name: secondary
 		Weapon: MammothMissiles
-		LocalOffset: -85, 384, 340, -85, -384, 340
+		LocalOffset: -85,384,340, -85,-384,340
 		LocalYaw: -100, 100
 		Recoil: 42
 	AttackTurreted:
-	RenderUnitTurreted:
+	WithMuzzleFlash@PRIMARY:
+	RenderUnit:
+	WithTurret:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	SelfHealing:
 		Ticks: 10
 		HealIfBelow: 50%
@@ -443,7 +430,6 @@ MSAM:
 		Cost: 1200
 	Tooltip:
 		Name: MLRS
-		Icon: msamicnh
 		Description: Long range rocket artillery.\n  Strong vs all ground units.
 	Buildable:
 		BuildPaletteOrder: 50
@@ -461,14 +447,17 @@ MSAM:
 	Turreted:
 		ROT: 255
 		Offset: -256,0,128
-	Armament:
+	Armament@PRIMARY:
 		Weapon: 227mm
 		LocalOffset: 213,128,0, 213,-128,0
+	Armament@SECONDARY:
+		Weapon: 227mm
+		LocalOffset: 213,-128,0, 213,128,0
 	AttackFrontal:
-	RenderUnitTurretedAim:
+	RenderUnit:
+	WithTurret:
+		AimSequence: aim
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	LeavesHusk:
 		HuskActor: MSAM.Husk
 
@@ -478,7 +467,6 @@ MLRS:
 		Cost: 600
 	Tooltip:
 		Name: Mobile S.A.M.
-		Icon: mlrsicnh
 		Description: Powerful anti-air unit.\nCannot attack ground units.
 	Buildable:
 		BuildPaletteOrder: 70
@@ -501,11 +489,11 @@ MLRS:
 		Weapon: Patriot
 		LocalOffset: 0,-171,0, 0,171,0
 	AttackTurreted:
-	RenderUnitTurretedAim:
+	RenderUnit:
+	WithTurret:
+		AimSequence: aim
 	AutoTarget:
 		InitialStance: Defend
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Explodes:
 		Weapon: UnitExplodeSmall
 		EmptyWeapon: UnitExplodeSmall
@@ -519,7 +507,6 @@ STNK:
 		Cost: 900
 	Tooltip:
 		Name: Stealth Tank
-		Icon: stnkicnh
 		Description: Long-range missile tank that can cloak.\nHas weak armor. Can be spotted by infantry.\n  Strong vs Vehicles, Tanks, Aircraft\n  Weak vs Infantry.
 	Buildable:
 		BuildPaletteOrder: 90
@@ -536,6 +523,7 @@ STNK:
 	RevealsShroud:
 		Range: 7
 	Cloak:
+		RequiresCrate: false
 		InitialDelay: 90
 		CloakDelay: 90
 		CloakSound: trans1.aud
@@ -547,8 +535,6 @@ STNK:
 	RenderUnit:
 	AutoTarget:
 		InitialStance: HoldFire
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	TargetableUnit:
 	LeavesHusk:
 		HuskActor: STNK.Husk
@@ -559,7 +545,6 @@ MHQ:
 		Cost: 1000
 	Tooltip:
 		Name: Mobile HQ
-		Icon: mhqicnh
 		Description: Base of operations
 	Health:
 		HP: 200
@@ -570,7 +555,8 @@ MHQ:
 	RevealsShroud:
 		Range: 6
 	RenderUnit:
-	WithSpinner:
+	WithIdleOverlay@SPINNER:
+		Sequence: spinner
 		Offset: -256,0,256
 	AttackMove:
 		JustMove: yes

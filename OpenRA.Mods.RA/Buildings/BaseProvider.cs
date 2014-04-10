@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using System.Drawing;
 using OpenRA.Graphics;
 using OpenRA.Traits;
@@ -17,14 +16,14 @@ namespace OpenRA.Mods.RA.Buildings
 {
 	public class BaseProviderInfo : ITraitInfo
 	{
-		public readonly float Range = 10;
+		public readonly int Range = 10;
 		public readonly int Cooldown = 0;
 		public readonly int InitialDelay = 0;
 
 		public object Create(ActorInitializer init) { return new BaseProvider(init.self, this); }
 	}
 
-	public class BaseProvider : ITick, IPreRenderSelection, ISelectionBar
+	public class BaseProvider : ITick, IPostRenderSelection, ISelectionBar
 	{
 		public readonly BaseProviderInfo Info;
 		DeveloperMode devMode;
@@ -56,24 +55,30 @@ namespace OpenRA.Mods.RA.Buildings
 			return devMode.FastBuild || progress == 0;
 		}
 
+		bool ValidRenderPlayer()
+		{
+			var allyBuildRadius = self.World.LobbyInfo.GlobalSettings.AllyBuildRadius;
+			return self.Owner == self.World.RenderPlayer || (allyBuildRadius && self.Owner.IsAlliedWith(self.World.RenderPlayer));
+		}
+
 		// Range circle
-		public void RenderBeforeWorld(WorldRenderer wr, Actor self)
+		public void RenderAfterWorld(WorldRenderer wr)
 		{
 			// Visible to player and allies
-			if (!self.Owner.IsAlliedWith(self.World.RenderPlayer))
+			if (!ValidRenderPlayer())
 				return;
 
 			wr.DrawRangeCircleWithContrast(
 				Color.FromArgb(128, Ready() ? Color.White : Color.Red),
-				self.CenterLocation.ToFloat2(), Info.Range,
-				Color.FromArgb(96, Color.Black), 1);
+				wr.ScreenPxPosition(self.CenterPosition), Info.Range,
+				Color.FromArgb(96, Color.Black));
 		}
 
 		// Selection bar
 		public float GetValue()
 		{
 			// Visible to player and allies
-			if (!self.Owner.IsAlliedWith(self.World.RenderPlayer))
+			if (!ValidRenderPlayer())
 				return 0f;
 
 			// Ready or delay disabled

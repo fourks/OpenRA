@@ -10,14 +10,13 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Move;
 using OpenRA.Traits;
 using OpenRA.FileFormats;
 
 namespace OpenRA.Mods.RA
 {
-	class MineInfo : ITraitInfo
+	class MineInfo : ITraitInfo, IOccupySpaceInfo
 	{
 		public readonly string[] CrushClasses = { };
 		public readonly bool AvoidFriendly = true;
@@ -26,7 +25,7 @@ namespace OpenRA.Mods.RA
 		public object Create(ActorInitializer init) { return new Mine(init, this); }
 	}
 
-	class Mine : ICrushable, IOccupySpace, ISync
+	class Mine : ICrushable, IOccupySpace, ISync, INotifyAddedToWorld, INotifyRemovedFromWorld
 	{
 		readonly Actor self;
 		readonly MineInfo info;
@@ -61,7 +60,21 @@ namespace OpenRA.Mods.RA
 		public CPos TopLeft { get { return location; } }
 
 		public IEnumerable<Pair<CPos, SubCell>> OccupiedCells() { yield return Pair.New(TopLeft, SubCell.FullCell); }
-		public PPos PxPosition { get { return Util.CenterOfCell( location ); } }
+		public WPos CenterPosition { get { return location.CenterPosition; } }
+
+		public void AddedToWorld(Actor self)
+		{
+			self.World.ActorMap.AddInfluence(self, this);
+			self.World.ActorMap.AddPosition(self, this);
+			self.World.ScreenMap.Add(self);
+		}
+
+		public void RemovedFromWorld(Actor self)
+		{
+			self.World.ActorMap.RemoveInfluence(self, this);
+			self.World.ActorMap.RemovePosition(self, this);
+			self.World.ScreenMap.Remove(self);
+		}
 	}
 
 	/* tag trait for stuff that shouldnt trigger mines */

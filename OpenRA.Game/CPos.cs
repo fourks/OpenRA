@@ -21,8 +21,6 @@ namespace OpenRA
 		public readonly int X, Y;
 
 		public CPos(int x, int y) { X = x; Y = y; }
-		public CPos(WPos a) { X = a.X / 1024; Y = a.Y / 1024; }
-
 		public static readonly CPos Zero = new CPos(0, 0);
 
 		public static explicit operator CPos(int2 a) { return new CPos(a.X, a.Y); }
@@ -41,7 +39,10 @@ namespace OpenRA
 
 		public float2 ToFloat2() { return new float2(X, Y); }
 		public int2 ToInt2() { return new int2(X, Y); }
-		public PPos ToPPos() { return new PPos(Game.CellSize * X, Game.CellSize * Y); }
+
+		public WPos CenterPosition { get { return new WPos(1024 * X + 512, 1024 * Y + 512, 0); } }
+		public WPos TopLeft { get { return new WPos(1024 * X, 1024 * Y, 0); } }
+		public WPos BottomRight { get { return new WPos(1024 * X + 1023, 1024 * Y + 1023, 0); } }
 
 		public CPos Clamp(Rectangle r)
 		{
@@ -53,11 +54,8 @@ namespace OpenRA
 
 		public override bool Equals(object obj)
 		{
-			if (obj == null)
-				return false;
-
-			CPos o = (CPos)obj;
-			return o == this;
+			var o = obj as CPos?;
+			return o != null && o == this;
 		}
 
 		public override string ToString() { return "{0},{1}".F(X, Y); }
@@ -68,5 +66,11 @@ namespace OpenRA
 	{
 		public static CPos TopLeftAsCPos(this Rectangle r) { return new CPos(r.Left, r.Top); }
 		public static CPos BottomRightAsCPos(this Rectangle r) { return new CPos(r.Right, r.Bottom); }
+	}
+
+	public static class WorldCoordinateExtensions
+	{
+		public static CPos ToCPos(this WPos a) { return new CPos(a.X / 1024, a.Y / 1024); }
+		public static CVec ToCVec(this WVec a) { return new CVec(a.X / 1024, a.Y / 1024); }
 	}
 }

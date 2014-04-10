@@ -1,5 +1,5 @@
 Metadata:
-	Title: C&C
+	Title: Tiberian Dawn
 	Description: OpenRA Reimagining of the classic game
 	Version: {DEV_VERSION}
 	Author: The OpenRA Developers
@@ -11,8 +11,11 @@ Folders:
 	./mods/cnc/uibits
 	~^/Content/cnc
 
+MapFolders:
+	./mods/cnc/maps
+	~^/maps/cnc
+
 Packages:
-	overrides.mix
 	bluetib.mix
 	speech.mix
 	conquer.mix
@@ -47,11 +50,13 @@ Sequences:
 	mods/cnc/sequences/structures.yaml
 	mods/cnc/sequences/vehicles.yaml
 	mods/cnc/sequences/infantry.yaml
-	mods/cnc/sequences/map.yaml
+	mods/cnc/sequences/aircraft.yaml
+	mods/cnc/sequences/decorations.yaml
 	mods/cnc/sequences/misc.yaml
-	# Low priority sequences that break the batch when used
+	mods/cnc/sequences/funpark.yaml
 	mods/cnc/sequences/civilian.yaml
 	mods/cnc/sequences/campaign.yaml
+
 Cursors:
 	mods/cnc/cursors.yaml
 
@@ -61,6 +66,7 @@ Chrome:
 Assemblies:
 	mods/ra/OpenRA.Mods.RA.dll
 	mods/cnc/OpenRA.Mods.Cnc.dll
+	mods/d2k/OpenRA.Mods.D2k.dll
 
 ChromeLayout:
 	mods/cnc/chrome/install.yaml
@@ -69,18 +75,22 @@ ChromeLayout:
 	mods/cnc/chrome/createserver.yaml
 	mods/cnc/chrome/directconnect.yaml
 	mods/cnc/chrome/lobby.yaml
+	mods/cnc/chrome/lobby-playerbin.yaml
 	mods/cnc/chrome/connection.yaml
 	mods/cnc/chrome/mapchooser.yaml
 	mods/cnc/chrome/replaybrowser.yaml
 	mods/cnc/chrome/ingame.yaml
+	mods/cnc/chrome/ingame-chat.yaml
 	mods/cnc/chrome/ingamemenu.yaml
 	mods/cnc/chrome/music.yaml
 	mods/cnc/chrome/modchooser.yaml
 	mods/cnc/chrome/settings.yaml
+	mods/cnc/chrome/credits.yaml
 	mods/cnc/chrome/cheats.yaml
 	mods/cnc/chrome/dialogs.yaml
 	mods/cnc/chrome/objectives.yaml
 	mods/cnc/chrome/tooltips.yaml
+	mods/cnc/chrome/irc.yaml
 
 Weapons:
 	mods/cnc/weapons.yaml
@@ -89,6 +99,9 @@ Movies:
 	mods/cnc/movies-gdi.yaml
 	mods/cnc/movies-nod.yaml
 	
+Translations:
+	mods/cnc/languages/english.yaml
+
 Voices:
 	mods/cnc/voices.yaml
 
@@ -106,14 +119,24 @@ TileSets:
 
 LoadScreen: CncLoadScreen
 	InstallerMenuWidget: INSTALL_PANEL
+	FilesToCopy: CONQUER.MIX, DESERT.MIX, SCORES.MIX, SOUNDS.MIX, TEMPERAT.MIX, WINTER.MIX
+	FilesToExtract: speech.mix, tempicnh.mix, transit.mix
 	InstallerBackgroundWidget: INSTALL_BACKGROUND
 	TestFile: conquer.mix
-	PackageURL: http://open-ra.org/get-dependency.php?file=cnc-packages
+	PackageURL: http://open-ra.org/download/content/cnc-packages
 
 ServerTraits:
 	LobbyCommands
 	PlayerPinger
 	MasterServerPinger
+
+LobbyDefaults:
+	AllowCheats: false
+	Crates: true
+	StartingUnitsClass: light
+	FragileAlliances: false
+	Shroud: true
+	Fog: true
 
 ChromeMetrics:
 	mods/cnc/metrics.yaml
@@ -126,8 +149,8 @@ Fonts:
 		Font:FreeSansBold.ttf
 		Size:14
 	Title:
-		Font:titles.ttf
-		Size:48
+		Font:FreeSansBold.ttf
+		Size:32
 	MediumBold:
 		Font:FreeSansBold.ttf
 		Size:18
@@ -140,3 +163,15 @@ Fonts:
 	TinyBold:
 		Font:FreeSansBold.ttf
 		Size:10
+
+LuaScripts:
+	mods/common/lua/utils.lua
+	mods/common/lua/openra.lua
+	mods/common/lua/map.lua
+	mods/common/lua/actor.lua
+	mods/common/lua/team.lua
+	mods/common/lua/media.lua
+	mods/common/lua/mission.lua
+	mods/common/lua/reinforcements.lua
+	mods/common/lua/supportpowers.lua
+	mods/common/lua/rules.lua

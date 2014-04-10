@@ -137,14 +137,11 @@ namespace OpenRA.Traits
 
 			if (hp == 0)
 			{
-				attacker.Owner.Kills++;
-				self.Owner.Deaths++;
-
 				foreach (var nd in self.TraitsImplementing<INotifyKilled>()
 						.Concat(self.Owner.PlayerActor.TraitsImplementing<INotifyKilled>()))
 					nd.Killed(self, ai);
 
-				if( RemoveOnDeath )
+				if (RemoveOnDeath)
 					self.Destroy();
 
 				Log.Write("debug", "{0} #{1} killed by {2} #{3}", self.Info.Name, self.ActorID, attacker.Info.Name, attacker.ActorID);
@@ -171,17 +168,10 @@ namespace OpenRA.Traits
 
 	public static class HealthExts
 	{
-		public static bool IsDead(this Actor self)
-		{
-			if (self.Destroyed)	return true;
-
-			var health = self.TraitOrDefault<Health>();
-			return (health == null) ? false : health.IsDead;
-		}
-
 		public static DamageState GetDamageState(this Actor self)
 		{
-			if (self.Destroyed) return DamageState.Dead;
+			if (self.Destroyed)
+				return DamageState.Dead;
 
 			var health = self.TraitOrDefault<Health>();
 			return (health == null) ? DamageState.Undamaged : health.DamageState;
@@ -193,13 +183,6 @@ namespace OpenRA.Traits
 			var health = self.TraitOrDefault<Health>();
 			if (health == null) return;
 			health.InflictDamage(self, attacker, damage, warhead, false);
-		}
-
-		public static void Kill(this Actor self, Actor attacker)
-		{
-			var health = self.TraitOrDefault<Health>();
-			if (health == null) return;
-			health.InflictDamage(self, attacker, health.MaxHP, null, true);
 		}
 	}
 }

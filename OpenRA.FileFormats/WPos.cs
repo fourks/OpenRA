@@ -8,8 +8,8 @@
  */
 #endregion
 
-using System;
-using System.Drawing;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenRA
 {
@@ -34,39 +34,56 @@ namespace OpenRA
 		public static bool operator ==(WPos me, WPos other) { return (me.X == other.X && me.Y == other.Y && me.Z == other.Z); }
 		public static bool operator !=(WPos me, WPos other) { return !(me == other); }
 
-		public static WPos Average(params WPos[] list)
+		public static WPos Lerp(WPos a, WPos b, int mul, int div) { return a + (b - a) * mul / div; }
+
+		public static WPos LerpQuadratic(WPos a, WPos b, WAngle pitch, int mul, int div)
 		{
-			if (list == null || list.Length == 0)
-				return WPos.Zero;
+			// Start with a linear lerp between the points
+			var ret = Lerp(a, b, mul, div);
 
-			var x = 0;
-			var y = 0;
-			var z = 0;
-			foreach(var pos in list)
-			{
-				x += pos.X;
-				y += pos.Y;
-				z += pos.Z;
-			}
+			if (pitch.Angle == 0)
+				return ret;
 
-			x /= list.Length;
-			y /= list.Length;
-			z /= list.Length;
-
-			return new WPos(x,y,z);
+			// Add an additional quadratic variation to height
+			// Attempts to avoid integer overflow by keeping the intermediate variables reasonably sized
+			var offset = (int)(((((((long)(b - a).Length * mul) / div) * (div - mul)) / div) * pitch.Tan()) / 1024);
+			return new WPos(ret.X, ret.Y, ret.Z + offset);
 		}
 
 		public override int GetHashCode() { return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode(); }
 
 		public override bool Equals(object obj)
 		{
-			if (obj == null)
-				return false;
-
-			WPos o = (WPos)obj;
-			return o == this;
+			var o = obj as WPos?;
+			return o != null && o == this;
 		}
 
 		public override string ToString() { return "{0},{1},{2}".F(X, Y, Z); }
+	}
+
+	public static class IEnumerableExtensions
+	{
+		public static WPos Average(this IEnumerable<WPos> source)
+		{
+			var length = source.Count();
+			if (length == 0)
+				return WPos.Zero;
+
+			var x = 0L;
+			var y = 0L;
+			var z = 0L;
+			foreach (var pos in source)
+			{
+				x += pos.X;
+				y += pos.Y;
+				z += pos.Z;
+			}
+
+			x /= length;
+			y /= length;
+			z /= length;
+
+			return new WPos((int)x, (int)y, (int)z);
+		}
 	}
 }

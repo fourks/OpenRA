@@ -5,7 +5,6 @@
 	Tooltip:
 		Name: Carryall
 		Description: Fast drop ship.\n  Unarmed
-		Icon: carryallicon
 	Health:
 		HP: 250
 	Armor: 
@@ -17,22 +16,20 @@
 		ROT: 4
 		Speed: 30
 		LandableTerrainTypes: Sand, Rock, Transition, Spice, Dune
-		RepairBuildings: repair
+		RepairBuildings: repaira,repairo,repairh
 		RearmBuildings: starporta,starporto,starporth
-		MinimalLandAltitude: 25
+		LandAltitude: 800
 	RenderUnit:
-	RenderCargo:
-		RelativeAltitude: 20
+	WithCargo:
+		LocalOffset: 0,0,-854
 	WithShadow:
 	Cargo:
 		Types: Vehicle
 		MaxWeight: 1
 		PipCount: 1
-		minimalUnloadAltitude: 25
-	FallsToEarth:
-		Spins: no
-		Moves: yes
-		Explosion: UnitExplodeScale
+		MaximumUnloadAltitude: 800
+	LeavesHusk:
+		HuskActor: CARRYALL.Husk
 
 FRIGATE:
 	ParaDrop:
@@ -44,7 +41,7 @@ FRIGATE:
 	Plane:
 		ROT: 5
 		Speed: 50
-		RepairBuildings: repair
+		RepairBuildings: repaira,repairo,repairh
 		RearmBuildings: starporta,starporto,starporth
 	Health:
 		HP: 500
@@ -62,6 +59,7 @@ FRIGATE:
 	-Selectable:
 	-GainsExperience:
 	FlyAwayOnIdle:
+	RejectsOrders:
 
 ORNI:
 	Inherits: ^Helicopter
@@ -86,20 +84,18 @@ ORNI:
 		InitialFacing: 20
 		ROT: 6
 		Speed: 40
-		RepairBuildings: repair
+		RepairBuildings: repaira,repairo,repairh
 		RearmBuildings: starporta,starporto,starporth
 	RenderUnit:
 	WithShadow:
 	Selectable:
 		Bounds: 38,32,0,0
-	FallsToEarth:
-		Spins: no
-		Moves: yes
-		Explosion: UnitExplodeScale
+	LeavesHusk:
+		HuskActor: ORNI.Husk
 
 ORNI.bomber:
-	CarpetBomb:
-		Range: 3
+	AttackBomber:
+	Armament:
 		Weapon: Napalm
 	Inherits: ^Plane
 	Health:
@@ -111,7 +107,7 @@ ORNI.bomber:
 	Plane:
 		ROT: 5
 		Speed: 50
-		RepairBuildings: repair
+		RepairBuildings: repaira,repairo,repairh
 		RearmBuildings: starporta,starporto,starporth
 	LimitedAmmo:
 		Ammo: 5
@@ -122,10 +118,9 @@ ORNI.bomber:
 	-GainsExperience:
 	Tooltip:
 		Name: Ornithopter
-	FallsToEarth:
-		Spins: no
-		Moves: yes
-		Explosion: UnitExplodeScale
+	LeavesHusk:
+		HuskActor: ORNI.bomber.Husk
+	RejectsOrders:
 
 CARRYALL.infantry:
 	ParaDrop:
@@ -141,7 +136,7 @@ CARRYALL.infantry:
 	Plane:
 		ROT: 4
 		Speed: 40
-		RepairBuildings: repair
+		RepairBuildings: repaira,repairo,repairh
 		RearmBuildings: starporta,starporto,starporth
 	RenderUnit:
 		Image: carryall
@@ -153,10 +148,9 @@ CARRYALL.infantry:
 	-GainsExperience:
 	Tooltip:
 		Name: Carryall
-	FallsToEarth:
-		Spins: no
-		Moves: yes
-		Explosion: UnitExplodeScale
+	LeavesHusk:
+		HuskActor: CARRYALL.infantry.Husk
+	RejectsOrders:
 
 BADR:
 	Inherits: CARRYALL.infantry
@@ -164,3 +158,70 @@ BADR:
 		LZRange: 4
 	Tooltip:
 		Name: Crate Carryall
+	LeavesHusk:
+		HuskActor: BADR.Husk
+
+CARRYALL.Husk:
+	Inherits: ^AircraftHusk
+	Tooltip:
+		Name: Carryall
+	Helicopter:
+		ROT: 4
+		Speed: 30
+		RepairBuildings: repaira,repairo,repairh
+		RearmBuildings: starporta,starporto,starporth
+	RenderUnit:
+		Image: carryall
+	WithShadow:
+
+ORNI.Husk:
+	Inherits: ^AircraftHusk
+	Tooltip:
+		Name: Ornithopter
+	Helicopter:
+		ROT: 6
+		Speed: 40
+		RepairBuildings: repaira,repairo,repairh
+		RearmBuildings: starporta,starporto,starporth
+	RenderUnit:
+		Image: orni
+	WithShadow:
+
+ORNI.bomber.Husk:
+	Inherits: ^AircraftHusk
+	Tooltip:
+		Name: Ornithopter
+	Plane:
+		ROT: 5
+		Speed: 50
+		RepairBuildings: repaira,repairo,repairh
+		RearmBuildings: starporta,starporto,starporth
+	RenderUnit:
+		Image: orni
+	WithShadow:
+
+CARRYALL.infantry.Husk:
+	Inherits: ^AircraftHusk
+	Tooltip:
+		Name: Carryall
+	Plane:
+		ROT: 4
+		Speed: 40
+		RepairBuildings: repaira,repairo,repairh
+		RearmBuildings: starporta,starporto,starporth
+	RenderUnit:
+		Image: carryall
+	WithShadow:
+
+BADR.Husk:
+	Inherits: ^AircraftHusk
+	Tooltip:
+		Name: Crate Carryall
+	Plane:
+		ROT: 4
+		Speed: 40
+		RepairBuildings: repaira,repairo,repairh
+		RearmBuildings: starporta,starporto,starporth
+	RenderUnit:
+		Image: carryall
+	WithShadow:

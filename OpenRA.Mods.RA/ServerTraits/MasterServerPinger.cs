@@ -33,7 +33,6 @@ namespace OpenRA.Mods.RA.Server
 						server.SendMessage(masterServerMessages.Dequeue());
 		}
 
-
 		public void LobbyInfoSynced(S server) { PingMasterServer(server); }
 		public void GameStarted(S server) { PingMasterServer(server); }
 		public void GameEnded(S server) { PingMasterServer(server); }
@@ -51,6 +50,7 @@ namespace OpenRA.Mods.RA.Server
 			lastPing = Environment.TickCount;
 			isBusy = true;
 
+			var mod = server.ModData.Manifest.Mod;
 			Action a = () =>
 				{
 					try
@@ -61,15 +61,14 @@ namespace OpenRA.Mods.RA.Server
 						using (var wc = new WebClient())
 						{
 							wc.Proxy = null;
-
-							 wc.DownloadData(
+							wc.DownloadData(
 								server.Settings.MasterServer + url.F(
 								server.Settings.ExternalPort, Uri.EscapeUriString(server.Settings.Name),
-								(int) server.State,
-								server.lobbyInfo.Clients.Where(c1 => c1.Bot == null).Count(),
-								server.lobbyInfo.Clients.Where(c1 => c1.Bot != null).Count(),
-								Game.CurrentMods.Select(f => "{0}@{1}".F(f.Key, f.Value.Version)).JoinWith(","),
-								server.lobbyInfo.GlobalSettings.Map,
+								(int)server.State,
+								server.LobbyInfo.Clients.Where(c1 => c1.Bot == null).Count(),
+								server.LobbyInfo.Clients.Where(c1 => c1.Bot != null).Count(),
+								"{0}@{1}".F(mod.Id, mod.Version),
+								server.LobbyInfo.GlobalSettings.Map,
 								server.Map.PlayerCount));
 
 							if (isInitialPing)
@@ -80,11 +79,11 @@ namespace OpenRA.Mods.RA.Server
 							}
 						}
 					}
-					catch(Exception ex)
+					catch (Exception ex)
 					{
 						Log.Write("server", ex.ToString());
-						lock( masterServerMessages )
-							masterServerMessages.Enqueue( "Master server communication failed." );
+						lock (masterServerMessages)
+							masterServerMessages.Enqueue("Master server communication failed.");
 					}
 
 					isBusy = false;

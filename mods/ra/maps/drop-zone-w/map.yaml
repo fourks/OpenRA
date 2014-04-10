@@ -1,6 +1,8 @@
 Selectable: True
 
-MapFormat: 5
+MapFormat: 6
+
+RequiresMod: ra
 
 Title: Drop Zone W
 
@@ -16,7 +18,16 @@ Bounds: 16,16,32,32
 
 UseAsShellmap: False
 
-Type: Minigame
+Type: Drop Zone
+
+Options:
+	Crates: True
+	Fog: False
+	Shroud: False
+	AllyBuildRadius: False
+	FragileAlliances: False
+	StartingCash: 5000
+	ConfigurableStartingUnits: False
 
 Players:
 	PlayerReference@Neutral:
@@ -32,6 +43,7 @@ Players:
 	PlayerReference@Multi0:
 		Name: Multi0
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -39,6 +51,7 @@ Players:
 	PlayerReference@Multi1:
 		Name: Multi1
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -46,6 +59,7 @@ Players:
 	PlayerReference@Multi2:
 		Name: Multi2
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -53,6 +67,7 @@ Players:
 	PlayerReference@Multi3:
 		Name: Multi3
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -60,6 +75,7 @@ Players:
 	PlayerReference@Multi4:
 		Name: Multi4
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -67,6 +83,7 @@ Players:
 	PlayerReference@Multi5:
 		Name: Multi5
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -74,6 +91,7 @@ Players:
 	PlayerReference@Multi6:
 		Name: Multi6
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -81,6 +99,7 @@ Players:
 	PlayerReference@Multi7:
 		Name: Multi7
 		Playable: True
+		AllowBots: False
 		LockRace: True
 		Race: allies
 		LockSpawn: True
@@ -238,11 +257,14 @@ Rules:
 		RevealsShroud:
 			Range: 50
 		Armament@PRIMARY:
-			Weapon:M60mg
+			Weapon: M60mg
 		Armament@SECONDARY:
-			Weapon:M60mg
+			Name: secondary
+			Weapon: M60mg
 		AttackFrontal:
-		WithMuzzleFlash:
+		WithMuzzleFlash@PRIMARY:
+		WithMuzzleFlash@SECONDARY:
+			Armament: secondary
 		MustBeDestroyed:
 		-GivesBounty:
 	PT:
@@ -275,6 +297,8 @@ Sequences:
 		turret: mgun
 			Start: 0
 			Facings: 32
+
+VoxelSequences:
 
 Weapons:
 	8Inch:
@@ -331,3 +355,7 @@ Weapons:
 			WaterImpactSound: splash9
 
 Voices:
+
+Notifications:
+
+Translations:

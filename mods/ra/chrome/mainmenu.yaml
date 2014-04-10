@@ -23,7 +23,7 @@ Container@MAINMENU:
 			X:(WINDOW_RIGHT - WIDTH)/8
 			Y:(WINDOW_BOTTOM - HEIGHT)/2
 			Width:250
-			Height:505
+			Height:605
 			Logic:MainMenuButtonsLogic
 			Children:
 				Label@MAINMENU_LABEL_TITLE:
@@ -83,29 +83,46 @@ Container@MAINMENU:
 					Height:35
 					Text:Replay Viewer
 					Font:Bold
-				Button@MAINMENU_BUTTON_QUIT:
+				Button@MAINMENU_BUTTON_CREDITS:
 					X:45
 					Y:430
 					Width:160
 					Height:35
+					Text:Credits
+					Font:Bold
+				Button@MAINMENU_BUTTON_ASSET_BROWSER:
+					X:45
+					Y:480
+					Width:160
+					Height:35
+					Text:Asset Browser
+					Font:Bold
+				Button@MAINMENU_BUTTON_QUIT:
+					X:45
+					Y:530
+					Width:160
+					Height:35
 					Text:Quit
 					Font:Bold
-Background@PERF_BG:
-	ClickThrough:true
-	Background:dialog4
-	Logic:PerfDebugLogic
-	X:10
-	Y:WINDOW_BOTTOM - 250
-	Width: 210
-	Height: 250
-	Children:
-		PerfGraph@GRAPH:
-			X:5
-			Y:5
-			Width:200
-			Height:200
-		Label@TEXT:
-			X:20
-			Y:205
-			Width:170
-			Height:40
+		Container@PERFORMANCE_INFO:
+			Logic:PerfDebugLogic
+			Children:
+				Label@PERF_TEXT:
+					X:30
+					Y:WINDOW_BOTTOM - 70
+					Width:170
+					Height:40
+					Contrast:true
+				Background@GRAPH_BG:
+					ClickThrough:true
+					Background:dialog4
+					X:WINDOW_RIGHT - 240
+					Y:WINDOW_BOTTOM - 240
+					Width:210
+					Height:210
+					Children:
+						PerfGraph@GRAPH:
+							X:5
+							Y:5
+							Width:200
+							Height:200

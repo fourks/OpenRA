@@ -4,8 +4,7 @@ MSLO:
 		Cost: 2500
 	Tooltip:
 		Name: Missile Silo
-		Description: Launches a devastating nuclear strike.\n  Strong vs Infantry, Buildings\n  Weak vs Tanks\n  Special Ability: Nuclear Missile\n\nMaximum 1 can be built
-		Icon: msloicon2
+		Description: Launches a devastating atomic bomb\nat a target location.\n  Special Ability: Atom Bomb\n\nMaximum 1 can be built
 	Buildable:
 		Queue: Defense
 		BuildPaletteOrder: 130
@@ -25,26 +24,28 @@ MSLO:
 		Range: 5
 	IronCurtainable:
 	NukePower:
-		Image: atomicon
+		Icon: abomb
 		ChargeTime: 540
 		Description: Atom Bomb
-		LongDesc: Launches a nuclear missile at a target location.
+		LongDesc: Launches a devastating atomic bomb\nat a target location.
 		BeginChargeSound: aprep1.aud
 		EndChargeSound: aready1.aud
 		SelectTargetSound: slcttgt1.aud
-		LaunchSound: alaunch1.aud
+		IncomingSound: alaunch1.aud
+		LaunchSound:
 		MissileWeapon: atomic
-		SpawnOffset: 10,0
+		SpawnOffset: 0,427,0
+		DisplayTimer: True
 	CanPowerDown:
 	RequiresPower:
 	SupportPowerChargeBar:
-	
+
 GAP:
 	Inherits: ^Building
 	RequiresPower:
 	CanPowerDown:
 	Valued:
-		Cost: 1000
+		Cost: 800
 	Tooltip:
 		Name: Gap Generator
 		Description: Regenerates the shroud nearby, \nobscuring the area.\n  Unarmed
@@ -71,6 +72,8 @@ GAP:
 
 SPEN:
 	Inherits: ^Building
+	Infiltratable:
+		Type: SupportPower
 	InfiltrateForSupportPower:
 		Proxy: powerproxy.sonarpulse
 	Valued:
@@ -126,6 +129,8 @@ SPEN:
 
 SYRD:
 	Inherits: ^Building
+	Infiltratable:
+		Type: SupportPower
 	InfiltrateForSupportPower:
 		Proxy: powerproxy.sonarpulse
 	Buildable:
@@ -188,30 +193,32 @@ IRON:
 		BuildPaletteOrder: 120
 		Prerequisites: stek
 		Owner: soviet
+		BuildLimit: 1
 		Hotkey: c
 	Valued:
 		Cost: 1500
 	Tooltip:
 		Name: Iron Curtain
-		Description: Makes a group of units invulnerable for a \nshort time.\n  Special Ability: Invulnerability
+		Description: Makes a group of units invulnerable\nfor a short time.\n  Special Ability: Invulnerability\n\nMaximum 1 can be built
 	Building:
 		Power: -200
-		Footprint: xx xx
-		Dimensions: 2,2
+		Footprint: xx
+		Dimensions: 2,1
+	Selectable:
+		Bounds: 50,50,0,-12
 	Health:
 		HP: 1000
 	Armor:
 		Type: Wood
 	RevealsShroud:
 		Range: 10
-	Bib:
 	IronCurtainable:
 	IronCurtainPower:
-		Image: infxicon
+		Icon: invuln
 		ChargeTime: 120
 		Description: Invulnerability
-		LongDesc: Makes a group of units invulnerable\nfor 15 seconds.
-		Duration: 15
+		LongDesc: Makes a group of units invulnerable\nfor 20 seconds.
+		Duration: 20
 		SelectTargetSound: slcttgt1.aud
 		BeginChargeSound: ironchg1.aud
 		EndChargeSound: ironrdy1.aud
@@ -226,12 +233,13 @@ PDOX:
 		BuildPaletteOrder: 120
 		Prerequisites: atek
 		Owner: allies
+		BuildLimit: 1
 		Hotkey: o
 	Valued:
 		Cost: 1500
 	Tooltip:
 		Name: Chronosphere
-		Description: Teleports a unit from one place \nto another, for a limited time.\n  Special Ability: Chronoshift
+		Description: Teleports a group of units across the\nmap for a short time.\n  Special Ability: Chronoshift\n\nMaximum 1 can be built
 	Building:
 		Power: -200
 		Footprint: xx xx
@@ -242,17 +250,16 @@ PDOX:
 		Type: Wood
 	RevealsShroud:
 		Range: 10
-	Bib:
 	IronCurtainable:
 	ChronoshiftPower:
-		Image: warpicon
+		Icon: chrono
 		ChargeTime: 120
 		Description: Chronoshift
-		LongDesc: Teleport a group of vehicles across\nthe map for 30 seconds.
+		LongDesc: Teleports a group of units across\nthe map for 20 seconds.
 		SelectTargetSound: slcttgt1.aud
 		BeginChargeSound: chrochr1.aud
 		EndChargeSound: chrordy1.aud
-		Duration: 30
+		Duration: 20
 		KillCargo: yes
 	SupportPowerChargeBar:
 	-AcceptsSupplies:
@@ -268,7 +275,7 @@ TSLA:
 		Owner: soviet
 		Hotkey: u
 	Valued:
-		Cost: 1500
+		Cost: 1200
 	Tooltip:
 		Name: Tesla Coil
 		Description: Advanced base defense. Requires power\nto operate.\n  Strong vs Tanks, Infantry\n  Weak vs Aircraft
@@ -290,8 +297,6 @@ TSLA:
 	AttackTesla:
 		ReloadTime: 120
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	IronCurtainable:
 	-RenderBuilding:
 	RenderRangeCircle:
@@ -330,9 +335,15 @@ AGUN:
 	RenderBuildingTurreted:
 	Armament@PRIMARY:
 		Weapon: ZSU-23
+		LocalOffset: 432,80,-30
 	Armament@SECONDARY:
+		Name: secondary
 		Weapon: ZSU-23
+		LocalOffset: 432,-80,-30
 	AttackTurreted:
+	WithMuzzleFlash@PRIMARY:
+	WithMuzzleFlash@SECONDARY:
+		Armament: secondary
 	AutoTarget:
 	IronCurtainable:
 	-RenderBuilding:
@@ -369,6 +380,8 @@ DOME:
 	Bib:
 	ProvidesRadar:
 	IronCurtainable:
+	Infiltratable:
+		Type: Exploration
 	InfiltrateForExploration:
 
 PBOX:
@@ -390,7 +403,7 @@ PBOX:
 	-AcceptsSupplies:
 	Turreted:
 		ROT: 255
-	RenderBuilding:
+	BodyOrientation:
 		QuantizedFacings: 8
 	Cargo:
 		Types: Infantry
@@ -446,16 +459,13 @@ PBOX.E1:
 	Tooltip:
 		Name: Pillbox (Guns)
 		Description: Basic defensive structure.\n  Strong vs Infantry, Light Vehicles\n  Weak vs Tanks, Aircraft
-		Icon: PBOXICON
 	RenderBuilding:
 		Image: PBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Vulcan
-		LocalOffset: 469,0,0
+		LocalOffset: 384,0,88
 	AttackTurreted:
 	WithMuzzleFlash:
 	Cargo:
@@ -476,11 +486,9 @@ PBOX.E3:
 		Image: PBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Dragon
-		LocalOffset: 469,0,0
+		LocalOffset: 384,0,88
 	AttackTurreted:
 
 PBOX.E4:
@@ -491,11 +499,9 @@ PBOX.E4:
 		Image: PBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Flamer
-		LocalOffset: 469,0,0
+		LocalOffset: 384,0,88
 	AttackTurreted:
 
 PBOX.E7:
@@ -506,11 +512,9 @@ PBOX.E7:
 		Image: PBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Colt45
-		LocalOffset: 469,0,0
+		LocalOffset: 384,0,88
 	AttackTurreted:
 
 PBOX.SHOK:
@@ -521,11 +525,9 @@ PBOX.SHOK:
 		Image: PBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: PortaTesla
-		LocalOffset: 469,0,0
+		LocalOffset: 384,0,88
 	AttackTurreted:
 
 PBOX.SNIPER:
@@ -536,11 +538,9 @@ PBOX.SNIPER:
 		Image: PBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Sniper
-		LocalOffset: 469,0,0
+		LocalOffset: 384,0,88
 	AttackTurreted:
 
 HBOX:
@@ -561,13 +561,11 @@ HBOX:
 	Cloak:
 		InitialDelay: 125
 		CloakDelay: 60
-		CloakSound: appear1.aud
-		UncloakSound: appear1.aud
 	IronCurtainable:
 	-AcceptsSupplies:
 	Turreted:
 		ROT: 255
-	RenderBuilding:
+	BodyOrientation:
 		QuantizedFacings: 8
 	Cargo:
 		Types: Infantry
@@ -623,16 +621,13 @@ HBOX.E1:
 	Tooltip:
 		Name: Camo Pillbox (Guns)
 		Description: Hidden defensive structure.\n  Strong vs Infantry, Light Vehicles\n  Weak vs Tanks, Aircraft
-		Icon: HBOXICON
 	RenderBuilding:
 		Image: HBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Vulcan
-		LocalOffset: 469,0,0
+		LocalOffset: 400,0,48
 	AttackTurreted:
 	WithMuzzleFlash:
 	Cargo:
@@ -653,11 +648,9 @@ HBOX.E3:
 		Image: HBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Dragon
-		LocalOffset: 469,0,0
+		LocalOffset: 400,0,48
 	AttackTurreted:
 
 HBOX.E4:
@@ -668,11 +661,9 @@ HBOX.E4:
 		Image: HBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Flamer
-		LocalOffset: 469,0,0
+		LocalOffset: 400,0,48
 	AttackTurreted:
 
 HBOX.E7:
@@ -683,11 +674,9 @@ HBOX.E7:
 		Image: HBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Colt45
-		LocalOffset: 469,0,0
+		LocalOffset: 400,0,48
 	AttackTurreted:
 
 HBOX.SHOK:
@@ -698,11 +687,9 @@ HBOX.SHOK:
 		Image: HBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: PortaTesla
-		LocalOffset: 469,0,0
+		LocalOffset: 400,0,48
 	AttackTurreted:
 
 HBOX.SNIPER:
@@ -713,11 +700,9 @@ HBOX.SNIPER:
 		Image: HBOX
 	RenderRangeCircle:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	Armament:
 		Weapon: Sniper
-		LocalOffset: 469,0,0
+		LocalOffset: 400,0,48
 	AttackTurreted:
 
 GUN:
@@ -748,10 +733,10 @@ GUN:
 	RenderBuildingTurreted:
 	Armament:
 		Weapon: TurretGun
+		LocalOffset: 512,0,112
 	AttackTurreted:
+	WithMuzzleFlash:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	IronCurtainable:
 	-RenderBuilding:
 	RenderRangeCircle:
@@ -782,16 +767,14 @@ FTUR:
 		Range: 6
 	Turreted:
 		ROT: 255
-		Offset: 0,0,85
+		Offset: 0,0,112
 	Armament:
 		Weapon: FireballLauncher
 		LocalOffset: 512,0,0
 	AttackTurreted:
-	RenderBuilding:
+	BodyOrientation:
 		QuantizedFacings: 8
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	IronCurtainable:
 	RenderRangeCircle:
 	-AcceptsSupplies:
@@ -830,8 +813,6 @@ SAM:
 	AttackTurreted:
 	WithMuzzleFlash:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	IronCurtainable:
 	-RenderBuilding:
 	RenderRangeCircle:
@@ -869,13 +850,14 @@ ATEK:
 	Bib:
 	IronCurtainable:
 	GpsPower:
-		Image: gpssicon
+		Icon: gps
 		OneShot: yes
 		ChargeTime: 480
 		Description: GPS Satellite
-		LongDesc: Reveals the entire map
+		LongDesc: Reveals the entire map.
 		RevealDelay: 15
 		LaunchSound: satlnch1.aud
+		DisplayTimer: True
 	SupportPowerChargeBar:
 
 WEAP:
@@ -947,8 +929,9 @@ FACT:
 		Offset:1,1
 		Facing: 96
 	ProductionBar:
-	-Sellable:
 	DeadBuildingState:
+	BaseProvider:
+		Range: 16
 
 PROC:
 	Inherits: ^Building
@@ -987,6 +970,8 @@ PROC:
 		InitialActivity: FindResources
 		SpawnOffset: 1,2
 		Facing: 64
+	Infiltratable:
+		Type: Cash
 	InfiltrateForCash:
 		Percentage: 50
 		Minimum: 500
@@ -1016,7 +1001,6 @@ SILO:
 	RevealsShroud:
 		Range: 4
 	RenderBuildingSilo:
-		FillSteps: 89
 	StoresOre:
 		PipCount: 5
 		Capacity: 1500
@@ -1052,8 +1036,7 @@ HPAD:
 		SpawnOffset: 0,-6
 		ExitCell: 0,0
 	Production:
-		Produces: Plane
-	BelowUnits:
+		Produces: Helicopter
 	Reservable:
 	IronCurtainable:
 	ProductionBar:
@@ -1088,28 +1071,27 @@ AFLD:
 		Facing:192
 	Production:
 		Produces: Plane
-	BelowUnits:
 	Reservable:
 	IronCurtainable:
 	SpyPlanePower:
-		Image: smigicon
+		Icon: spyplane
 		ChargeTime: 180
 		Description: Spy Plane
 		LongDesc: Reveals an area of the map.
 		SelectTargetSound: slcttgt1.aud
 		EndChargeSound: spypln1.aud
 	ParatroopersPower:
-		Image: pinficon
+		Icon: paratroopers
 		ChargeTime: 360
 		Description: Paratroopers
-		LongDesc: A Badger drops a squad of Riflemen \nanywhere on the map
+		LongDesc: A Badger drops a squad of infantry \nanywhere on the map
 		Prerequisites: AFLD
 		DropItems: E1,E1,E1,E3,E3
 		SelectTargetSound: slcttgt1.aud
 	ProductionBar:
 	SupportPowerChargeBar:
 	PrimaryBuilding:
-	
+
 POWR:
 	Inherits: ^Building
 	Buildable:
@@ -1309,7 +1291,6 @@ FIX:
 		Type: Wood
 	RevealsShroud:
 		Range: 5
-	BelowUnits:
 	Reservable:
 	RallyPoint:
 	IronCurtainable:
@@ -1326,6 +1307,7 @@ FACF:
 		Hotkey: c
 		Queue: Defense
 	Tooltip:
+		Icon: fake-icon
 		Name: Fake Construction Yard
 		Description: Looks like a Construction Yard.
 	Building:
@@ -1355,6 +1337,7 @@ WEAF:
 		Hotkey: x
 		Queue: Defense
 	Tooltip:
+		Icon: fake-icon
 		Name: Fake War Factory
 		Description: Looks like a War Factory.
 	Building:
@@ -1385,6 +1368,7 @@ SYRF:
 		Hotkey: z
 		Queue: Defense
 	Tooltip:
+		Icon: fake-icon
 		Name: Fake Shipyard
 		Description: Looks like a Shipyard
 	TargetableBuilding:
@@ -1418,6 +1402,7 @@ SPEF:
 		Hotkey: z
 		Queue: Defense
 	Tooltip:
+		Icon: fake-icon
 		Name: Fake Sub Pen
 		Description: Looks like a Sub Pen
 	Building:
@@ -1441,6 +1426,7 @@ DOMF:
 	Valued:
 		Cost: 50
 	Tooltip:
+		Icon: fake-icon
 		Name: Fake Radar Dome
 		Description: Looks like a Radar Dome
 	Buildable:

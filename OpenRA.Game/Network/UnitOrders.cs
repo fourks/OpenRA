@@ -51,9 +51,11 @@ namespace OpenRA.Network
 							Game.AddChatLine(Color.White, "(player {0})".F(clientId), order.TargetString);
 						break;
 					}
+
 				case "Message": // Server message
 						Game.AddChatLine(Color.White, "Server", order.TargetString);
 					break;
+
 				case "Disconnected": /* reports that the target player disconnected */
 					{
 						var client = orderManager.LobbyInfo.ClientWithIndex(clientId);
@@ -117,12 +119,14 @@ namespace OpenRA.Network
 				case "HandshakeRequest":
 					{
 						var request = HandshakeRequest.Deserialize(order.TargetString);
-						var localMods = orderManager.LobbyInfo.GlobalSettings.Mods.Select(m => "{0}@{1}".F(m,Mod.AllMods[m].Version)).ToArray();
 
-						// Check if mods match
-						if (localMods.FirstOrDefault().ToString().Split('@')[0] != request.Mods.FirstOrDefault().ToString().Split('@')[0])
-							throw new InvalidOperationException("Server's mod ({0}) and yours ({1}) don't match".F(localMods.FirstOrDefault().ToString().Split('@')[0], request.Mods.FirstOrDefault().ToString().Split('@')[0]));
+						// TODO: Switch to the server's mod if we have it
+						// Otherwise send the handshake with our current settings and let the server reject us
+						var mod = Game.modData.Manifest.Mod;
+
 						// Check that the map exists on the client
+						// TODO: This will behave badly if joining a server with a different mod
+						// This needs to occur *after* joining the server
 						if (!Game.modData.AvailableMaps.ContainsKey(request.Map))
 						{
 							if (Game.Settings.Game.AllowDownloading)
@@ -145,8 +149,9 @@ namespace OpenRA.Network
 						var response = new HandshakeResponse()
 						{
 							Client = info,
-							Mods = localMods,
-							Password = "Foo"
+							Mod = mod.Id,
+							Version = mod.Version,
+							Password = orderManager.Password
 						};
 
 						orderManager.IssueOrder(Order.HandshakeResponse(response.Serialize()));
@@ -154,8 +159,18 @@ namespace OpenRA.Network
 					}
 
 				case "ServerError":
-					orderManager.ServerError = order.TargetString;
-					break;
+					{
+						orderManager.ServerError = order.TargetString;
+						orderManager.AuthenticationFailed = false;
+						break;
+					}
+
+				case "AuthenticationError":
+					{
+						orderManager.ServerError = order.TargetString;
+						orderManager.AuthenticationFailed = true;
+						break;
+					}
 
 				case "SyncInfo":
 					{
@@ -193,20 +208,22 @@ namespace OpenRA.Network
 
 						break;
 					}
+
 				case "Ping":
 					{
 						orderManager.IssueOrder(Order.Pong(order.TargetString));
 						break;
 					}
+
 				default:
 					{
-						if( !order.IsImmediate )
+						if (!order.IsImmediate)
 						{
 							var self = order.Subject;
 							var health = self.TraitOrDefault<Health>();
-							if( health == null || !health.IsDead )
-								foreach( var t in self.TraitsImplementing<IResolveOrder>() )
-									t.ResolveOrder( self, order );
+							if (health == null || !health.IsDead)
+								foreach (var t in self.TraitsImplementing<IResolveOrder>())
+									t.ResolveOrder(self, order);
 						}
 						break;
 					}

@@ -11,12 +11,10 @@
 using System;
 
 using Mono.Nat;
-using Mono.Nat.Pmp;
-using Mono.Nat.Upnp;
 
 namespace OpenRA.Network
 {
-	class UPnP
+	public class UPnP
 	{
 		public static INatDevice NatDevice;
 

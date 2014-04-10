@@ -1,6 +1,6 @@
-﻿#region Copyright & License Information
+#region Copyright & License Information
 /*
- * Copyright 2007-2011 The OpenRA Developers (see AUTHORS)
+ * Copyright 2007-2013 The OpenRA Developers (see AUTHORS)
  * This file is part of OpenRA, which is free software. It is made
  * available to you under the terms of the GNU General Public License
  * as published by the Free Software Foundation. For more information,
@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -23,11 +22,10 @@ namespace OpenRA.Mods.RA.Effects
 	class MissileInfo : IProjectileInfo
 	{
 		public readonly int Speed = 1;
+		public readonly WAngle MaximumPitch = WAngle.FromDegrees(30);
 		public readonly int Arm = 0;
 		[Desc("Check for whether an actor with Wall: trait blocks fire")]
 		public readonly bool High = false;
-		public readonly bool Shadow = true;
-		public readonly bool Proximity = false;
 		public readonly string Trail = null;
 		public readonly float Inaccuracy = 0;
 		public readonly string Image = null;
@@ -46,142 +44,150 @@ namespace OpenRA.Mods.RA.Effects
 		public IEffect Create(ProjectileArgs args) { return new Missile(this, args); }
 	}
 
-	class Missile : IEffect
+	class Missile : IEffect, ISync
 	{
-		readonly MissileInfo Info;
-		readonly ProjectileArgs Args;
+		static readonly WRange MissileCloseEnough = new WRange(7 * 1024 / Game.CellSize);
 
-		PVecInt offset;
-		public PSubPos SubPxPosition;
-		public PPos PxPosition { get { return SubPxPosition.ToPPos(); } }
-
+		readonly MissileInfo info;
+		readonly ProjectileArgs args;
 		readonly Animation anim;
-		int Facing;
-		int t;
-		int Altitude;
-		ContrailHistory Trail;
+		readonly int speed;
+
+		int ticksToNextSmoke;
+		ContrailRenderable trail;
+
+		[Sync] WPos pos;
+		[Sync] int facing;
+
+		[Sync] WPos targetPosition;
+		[Sync] WVec offset;
+		[Sync] int ticks;
+
+		[Sync] public Actor SourceActor { get { return args.SourceActor; } }
+		[Sync] public Target GuidedTarget { get { return args.GuidedTarget; } }
 
 		public Missile(MissileInfo info, ProjectileArgs args)
 		{
-			Info = info;
-			Args = args;
+			this.info = info;
+			this.args = args;
 
-			SubPxPosition = Args.src.ToPSubPos();
-			Altitude = Args.srcAltitude;
-			Facing = Args.facing;
+			pos = args.Source;
+			facing = args.Facing;
+
+			targetPosition = args.PassiveTarget;
+
+			// Convert ProjectileArg definitions to world coordinates
+			// TODO: Change the yaml definitions so we don't need this
+			var inaccuracy = (int)(info.Inaccuracy * 1024 / Game.CellSize);
+			speed = info.Speed * 1024 / (5 * Game.CellSize);
 
 			if (info.Inaccuracy > 0)
-				offset = (PVecInt)(info.Inaccuracy * args.firedBy.World.SharedRandom.Gauss2D(2)).ToInt2();
+				offset = WVec.FromPDF(args.SourceActor.World.SharedRandom, 2) * inaccuracy / 1024;
 
-			if (Info.Image != null)
+			if (info.Image != null)
 			{
-				anim = new Animation(Info.Image, () => Facing);
+				anim = new Animation(info.Image, () => facing);
 				anim.PlayRepeating("idle");
 			}
 
-			if (Info.ContrailLength > 0)
+			if (info.ContrailLength > 0)
 			{
-				Trail = new ContrailHistory(Info.ContrailLength,
-					Info.ContrailUsePlayerColor ? ContrailHistory.ChooseColor(args.firedBy) : Info.ContrailColor,
-					Info.ContrailDelay);
+				var color = info.ContrailUsePlayerColor ? ContrailRenderable.ChooseColor(args.SourceActor) : info.ContrailColor;
+				trail = new ContrailRenderable(args.SourceActor.World, color, info.ContrailLength, info.ContrailDelay, 0);
 			}
 		}
 
-		// In pixels
-		const int MissileCloseEnough = 7;
-		int ticksToNextSmoke;
+		bool JammedBy(TraitPair<JamsMissiles> tp)
+		{
+			if ((tp.Actor.CenterPosition - pos).HorizontalLengthSquared > tp.Trait.Range * tp.Trait.Range)
+				return false;
+
+			if (tp.Actor.Owner.Stances[args.SourceActor.Owner] == Stance.Ally && !tp.Trait.AlliedMissiles)
+				return false;
+
+			return tp.Actor.World.SharedRandom.Next(100 / tp.Trait.Chance) == 0;
+		}
 
 		public void Tick(World world)
 		{
-			t += 40;
-
-			// In pixels
-			var dist = Args.target.CenterLocation + offset - PxPosition;
-
-			var targetAltitude = 0; 
-			if (Args.target.IsValid && Args.target.IsActor && Args.target.Actor.HasTrait<IMove>())
-				targetAltitude = Args.target.Actor.Trait<IMove>().Altitude;
-
-			var jammed = Info.Jammable && world.ActorsWithTrait<JamsMissiles>().Any(tp =>
-				(tp.Actor.CenterLocation - PxPosition).ToCVec().Length <= tp.Trait.Range
-
-				&& (tp.Actor.Owner.Stances[Args.firedBy.Owner] != Stance.Ally
-				|| (tp.Actor.Owner.Stances[Args.firedBy.Owner] == Stance.Ally && tp.Trait.AlliedMissiles))
-
-				&& world.SharedRandom.Next(100 / tp.Trait.Chance) == 0);
-
-			if (!jammed)
-			{
-				Altitude += Math.Sign(targetAltitude - Altitude);
-				if (Args.target.IsValid)
-					Facing = Traits.Util.TickFacing(Facing,
-						Traits.Util.GetFacing(dist, Facing),
-						Info.ROT);
-			}
-			else
-			{
-				Altitude += world.SharedRandom.Next(-1, 2);
-				Facing = Traits.Util.TickFacing(Facing,
-					Facing + world.SharedRandom.Next(-20, 21),
-					Info.ROT);
-			}
-
+			ticks++;
 			anim.Tick();
 
-			if (dist.LengthSquared < MissileCloseEnough * MissileCloseEnough && Args.target.IsValid)
-				Explode(world);
+			// Missile tracks target
+			if (args.GuidedTarget.IsValidFor(args.SourceActor))
+				targetPosition = args.GuidedTarget.CenterPosition;
 
-			// TODO: Replace this with a lookup table
-			var dir = (-float2.FromAngle((float)(Facing / 128f * Math.PI))).ToPSubVec();
+			var dist = targetPosition + offset - pos;
+			var desiredFacing = Traits.Util.GetFacing(dist, facing);
+			var desiredAltitude = targetPosition.Z;
+			var jammed = info.Jammable && world.ActorsWithTrait<JamsMissiles>().Any(j => JammedBy(j));
 
-			var move = Info.Speed * dir;
-			if (targetAltitude > 0 && Info.TurboBoost)
+			if (jammed)
+			{
+				desiredFacing = facing + world.SharedRandom.Next(-20, 21);
+				desiredAltitude = world.SharedRandom.Next(-43, 86);
+			}
+			else if (!args.GuidedTarget.IsValidFor(args.SourceActor))
+				desiredFacing = facing;
+
+			facing = Traits.Util.TickFacing(facing, desiredFacing, info.ROT);
+			var move = new WVec(0, -1024, 0).Rotate(WRot.FromFacing(facing)) * speed / 1024;
+			if (targetPosition.Z > 0 && info.TurboBoost)
 				move = (move * 3) / 2;
-			move = move / 5;
 
-			SubPxPosition += move;
-
-			if (Info.Trail != null)
+			if (pos.Z != desiredAltitude)
 			{
-				var sp = ((SubPxPosition - (move * 3) / 2)).ToPPos() - new PVecInt(0, Altitude);
-
-				if (--ticksToNextSmoke < 0)
-				{
-					world.AddFrameEndTask(w => w.Add(new Smoke(w, sp, Info.Trail)));
-					ticksToNextSmoke = Info.TrailInterval;
-				}
+				var delta = move.HorizontalLength * info.MaximumPitch.Tan() / 1024;
+				var dz = (targetPosition.Z - pos.Z).Clamp(-delta, delta);
+				move += new WVec(0, 0, dz);
 			}
 
-			if (Info.RangeLimit != 0 && t > Info.RangeLimit * 40)
+			pos += move;
+
+			if (info.Trail != null && --ticksToNextSmoke < 0)
+			{
+				world.AddFrameEndTask(w => w.Add(new Smoke(w, pos - 3 * move / 2, info.Trail)));
+				ticksToNextSmoke = info.TrailInterval;
+			}
+
+			if (info.ContrailLength > 0)
+				trail.Update(pos);
+
+			var shouldExplode = (pos.Z < 0) // Hit the ground
+				|| (dist.LengthSquared < MissileCloseEnough.Range * MissileCloseEnough.Range) // Within range
+				|| (info.RangeLimit != 0 && ticks > info.RangeLimit) // Ran out of fuel
+				|| (!info.High && world.ActorMap.GetUnitsAt(pos.ToCPos())
+					.Any(a => a.HasTrait<IBlocksBullets>())); // Hit a wall
+
+			if (shouldExplode)
 				Explode(world);
-
-			if (!Info.High)		// check for hitting a wall
-			{
-				var cell = PxPosition.ToCPos();
-				if (world.ActorMap.GetUnitsAt(cell).Any(a => a.HasTrait<IBlocksBullets>()))
-					Explode(world);
-			}
-
-			if (Trail != null)
-				Trail.Tick(PxPosition.ToWPos(Altitude));
 		}
 
 		void Explode(World world)
 		{
+			if (info.ContrailLength > 0)
+				world.AddFrameEndTask(w => w.Add(new ContrailFader(pos, trail)));
+
 			world.AddFrameEndTask(w => w.Remove(this));
-			Args.dest = PxPosition;
-			if (t > Info.Arm * 40)	/* don't blow up in our launcher's face! */
-				Combat.DoImpacts(Args);
+
+			// Don't blow up in our launcher's face!
+			if (ticks <= info.Arm)
+				return;
+
+			Combat.DoImpacts(pos, args.SourceActor, args.Weapon, args.FirepowerModifier);
 		}
 
-		public IEnumerable<Renderable> Render(WorldRenderer wr)
+		public IEnumerable<IRenderable> Render(WorldRenderer wr)
 		{
-			if (!Args.firedBy.World.FogObscures(PxPosition.ToCPos()))
-				yield return new Renderable(anim.Image, PxPosition.ToFloat2() - 0.5f * anim.Image.size - new float2(0, Altitude),
-					wr.Palette(Args.weapon.Underwater ? "shadow" : "effect"), PxPosition.Y);
+			if (info.ContrailLength > 0)
+				yield return trail;
 
-			if (Trail != null)
-				Trail.Render(wr, Args.firedBy);
+			if (!args.SourceActor.World.FogObscures(pos.ToCPos()))
+			{
+				var palette = wr.Palette(args.Weapon.Underwater ? "shadow" : "effect");
+				foreach (var r in anim.Render(pos, palette))
+					yield return r;
+			}
 		}
 	}
 }

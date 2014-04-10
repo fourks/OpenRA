@@ -10,17 +10,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
 using OpenRA.FileFormats;
 using OpenRA.FileFormats.Graphics;
-using OpenRA.Server;
 
 namespace OpenRA.GameRules
 {
 	public enum MouseScrollType { Disabled, Standard, Inverted }
-	public enum SoundCashTicks { Disabled, Normal, Extreme }
 
 	public class ServerSettings
 	{
@@ -28,6 +24,7 @@ namespace OpenRA.GameRules
 		public int ListenPort = 1234;
 		public int ExternalPort = 1234;
 		public bool AdvertiseOnline = true;
+		public string Password = "";
 		public string MasterServer = "http://master.open-ra.org/";
 		public bool DiscoverNatDevices = false; // Allow users to disable NAT discovery if problems occur
 		public bool AllowPortForward = true; // let the user disable it even if compatible devices are found
@@ -36,7 +33,7 @@ namespace OpenRA.GameRules
 		public bool VerboseNatDiscovery = false; // print very detailed logs for debugging
 		public bool AllowCheats = false;
 		public string Map = null;
-		public string[] Ban = null;
+		public string[] Ban = { };
 		public int TimeOut = 0;
 		public bool Dedicated = false;
 		public bool DedicatedLoop = true;
@@ -51,6 +48,7 @@ namespace OpenRA.GameRules
 			ListenPort = other.ListenPort;
 			ExternalPort = other.ExternalPort;
 			AdvertiseOnline = other.AdvertiseOnline;
+			Password = other.Password;
 			MasterServer = other.MasterServer;
 			DiscoverNatDevices = other.DiscoverNatDevices;
 			AllowPortForward = other.AllowPortForward;
@@ -77,21 +75,28 @@ namespace OpenRA.GameRules
 		public bool SanityCheckUnsyncedCode = false;
 		public int Samples = 25;
 		public bool IgnoreVersionMismatch = false;
+		public bool DeveloperMenu = false;
+
+		public bool ShowFatalErrorDialog = true;
+		public string FatalErrorDialogFaq = "http://github.com/OpenRA/OpenRA/wiki/FAQ";
 	}
 
 	public class GraphicSettings
 	{
-		public string Renderer = "Gl";
+		public string Renderer = "Sdl2";
 		public WindowMode Mode = WindowMode.PseudoFullscreen;
 		public int2 FullscreenSize = new int2(0,0);
 		public int2 WindowedSize = new int2(1024, 768);
 		public bool PixelDouble = false;
-		public bool CapFramerate = false;
+		public bool CapFramerate = true;
 		public int MaxFramerate = 60;
 
 		public int BatchSize = 8192;
 		public int NumTempBuffers = 8;
 		public int SheetSize = 2048;
+
+		public string Language = "english";
+		public string DefaultLanguage = "english";
 	}
 
 	public class SoundSettings
@@ -99,12 +104,15 @@ namespace OpenRA.GameRules
 		public float SoundVolume = 0.5f;
 		public float MusicVolume = 0.5f;
 		public float VideoVolume = 0.5f;
+
 		public bool Shuffle = false;
 		public bool Repeat = false;
 		public bool MapMusic = true;
+
 		public string Engine = "AL";
-		
-		public SoundCashTicks SoundCashTickType = SoundCashTicks.Extreme;
+		public string Device = null;
+
+		public bool CashTicks = true;
 	}
 
 	public class PlayerSettings
@@ -116,9 +124,8 @@ namespace OpenRA.GameRules
 
 	public class GameSettings
 	{
-		public string[] Mods = { "ra" };
+		public string Mod = "ra";
 
-		public bool TeamChatToggle = false;
 		public bool ShowShellmap = true;
 
 		public bool ViewportEdgeScroll = true;
@@ -126,35 +133,57 @@ namespace OpenRA.GameRules
 		public float ViewportEdgeScrollStep = 10f;
 
 		public bool UseClassicMouseStyle = false;
+		public bool AlwaysShowStatusBars = false;
+		public bool TeamHealthColors = false;
 
 		// Internal game settings
 		public int Timestep = 40;
 
-		public string ConnectTo = "";
 		public bool AllowDownloading = true;
 		public string MapRepository = "http://content.open-ra.org/map/";
 	}
 
 	public class KeySettings
 	{
-		public string CycleBaseKey = "backspace";
-		public string ToLastEventKey = "space";
-		public string ToSelectionKey = "home";
+		public Hotkey CycleBaseKey = new Hotkey(Keycode.BACKSPACE, Modifiers.None);
+		public Hotkey ToLastEventKey = new Hotkey(Keycode.SPACE, Modifiers.None);
+		public Hotkey ToSelectionKey = new Hotkey(Keycode.HOME, Modifiers.None);
+		public Hotkey SelectAllUnitsKey = new Hotkey(Keycode.A, Modifiers.Ctrl);
 
-		public string PauseKey = "f9";
-		public string SellKey = "f10";
-		public string PowerDownKey = "f11";
-		public string RepairKey = "f12";
+		public Hotkey PauseKey = new Hotkey(Keycode.F9, Modifiers.None);
+		public Hotkey SellKey = new Hotkey(Keycode.F10, Modifiers.None);
+		public Hotkey PowerDownKey = new Hotkey(Keycode.F11, Modifiers.None);
+		public Hotkey RepairKey = new Hotkey(Keycode.F12, Modifiers.None);
 
-		public string AttackMoveKey = "a";
-		public string StopKey = "s";
-		public string ScatterKey = "x";
-		public string DeployKey = "f";
-		public string StanceCycleKey = "z";
+		public Hotkey NextProductionTabKey = new Hotkey(Keycode.PAGEDOWN, Modifiers.None);
+		public Hotkey PreviousProductionTabKey = new Hotkey(Keycode.PAGEUP, Modifiers.None);
+		public Hotkey CycleProductionBuildingsKey = new Hotkey(Keycode.TAB, Modifiers.None);
 
-		public string CycleTabsKey = "tab";
+		public Hotkey ToggleStatusBarsKey = new Hotkey(Keycode.INSERT, Modifiers.None);
+
+		public Hotkey AttackMoveKey = new Hotkey(Keycode.A, Modifiers.None);
+		public Hotkey StopKey = new Hotkey(Keycode.S, Modifiers.None);
+		public Hotkey ScatterKey = new Hotkey(Keycode.X, Modifiers.None);
+		public Hotkey DeployKey = new Hotkey(Keycode.F, Modifiers.None);
+		public Hotkey StanceCycleKey = new Hotkey(Keycode.Z, Modifiers.None);
+		public Hotkey GuardKey = new Hotkey(Keycode.D, Modifiers.None);
 	}
 
+	public class IrcSettings
+	{
+		public string Hostname = "irc.open-ra.org";
+		public int Port = 6667;
+		public string Nickname = null;
+		public string Username = "openra";
+		public string Realname = null;
+		public string DefaultNickname = "Newbie";
+		public string Channel = "global";
+		public string TimestampFormat = "HH:mm:ss";
+		public int ReconnectDelay = 10000;
+		public int ConnectionTimeout = 300000;
+		public bool Debug = false;
+		public bool ConnectAutomatically = false;
+	}
 
 	public class Settings
 	{
@@ -167,6 +196,7 @@ namespace OpenRA.GameRules
 		public ServerSettings Server = new ServerSettings();
 		public DebugSettings Debug = new DebugSettings();
 		public KeySettings Keys = new KeySettings();
+		public IrcSettings Irc = new IrcSettings();
 
 		public Dictionary<string, object> Sections;
 
@@ -182,6 +212,7 @@ namespace OpenRA.GameRules
 				{"Server", Server},
 				{"Debug", Debug},
 				{"Keys", Keys},
+				{"Irc", Irc}
 			};
 
 			// Override fieldloader to ignore invalid entries

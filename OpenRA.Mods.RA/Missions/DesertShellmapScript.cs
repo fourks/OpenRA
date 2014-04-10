@@ -11,11 +11,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using OpenRA.FileFormats;
+using OpenRA.Graphics;
 using OpenRA.Mods.RA.Activities;
 using OpenRA.Mods.RA.Air;
 using OpenRA.Mods.RA.Buildings;
 using OpenRA.Mods.RA.Move;
-using OpenRA.Scripting;
+using OpenRA.Mods.RA.Scripting;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA.Missions
@@ -25,16 +26,17 @@ namespace OpenRA.Mods.RA.Missions
 	class DesertShellmapScript : ITick, IWorldLoaded
 	{
 		World world;
+		WorldRenderer worldRenderer;
 		Player allies;
 		Player soviets;
 		Player neutral;
 
-		List<int2> viewportTargets = new List<int2>();
-		int2 viewportTarget;
+		WPos[] viewportTargets;
+		WPos viewportTarget;
 		int viewportTargetNumber;
-		int2 viewportOrigin;
-		float mul;
-		float div = 400;
+		WPos viewportOrigin;
+		int mul;
+		int div = 400;
 		int waitTicks = 0;
 
 		int nextCivilianMove = 1;
@@ -90,7 +92,7 @@ namespace OpenRA.Mods.RA.Missions
 			{
 				var actor = OffmapAttackers.Random(world.SharedRandom);
 				var spawn = offmapAttackerSpawns.Random(world.SharedRandom);
-				var u = world.CreateActor(actor, soviets, spawn.Location, Util.GetFacing(attackLocation.Location - spawn.Location, 0));
+				var u = world.CreateActor(actor, soviets, spawn.Location, Traits.Util.GetFacing(attackLocation.Location - spawn.Location, 0));
 				var cargo = u.TraitOrDefault<Cargo>();
 				if (cargo != null)
 				{
@@ -137,12 +139,12 @@ namespace OpenRA.Mods.RA.Missions
 			if (--waitTicks <= 0)
 			{
 				if (++mul <= div)
-					Game.MoveViewport(float2.Lerp(viewportOrigin, viewportTarget, mul / div));
+					worldRenderer.Viewport.Center(WPos.Lerp(viewportOrigin, viewportTarget, mul, div));
 				else
 				{
 					mul = 0;
 					viewportOrigin = viewportTarget;
-					viewportTarget = viewportTargets[(viewportTargetNumber = (viewportTargetNumber + 1) % viewportTargets.Count)];
+					viewportTarget = viewportTargets[(viewportTargetNumber = (viewportTargetNumber + 1) % viewportTargets.Length)];
 					waitTicks = 100;
 
 					if (viewportTargetNumber == 0)
@@ -176,7 +178,7 @@ namespace OpenRA.Mods.RA.Missions
 		{
 			foreach (var tank in HeavyTanks)
 			{
-				var u = world.CreateActor(tank, soviets, heavyTankSpawn.Location, Util.GetFacing(heavyTankWP.Location - heavyTankSpawn.Location, 0));
+				var u = world.CreateActor(tank, soviets, heavyTankSpawn.Location, Traits.Util.GetFacing(heavyTankWP.Location - heavyTankSpawn.Location, 0));
 				u.QueueActivity(new AttackMove.AttackMoveActivity(u, new Move.Move(heavyTankWP.Location, 0)));
 			}
 			ironCurtain.Trait<IronCurtainPower>().Activate(ironCurtain, new Order { TargetLocation = heavyTankSpawn.Location });
@@ -187,7 +189,7 @@ namespace OpenRA.Mods.RA.Missions
 			var chronoInfo = new List<Pair<Actor, CPos>>();
 			foreach (var tank in MediumTanks.Select((x, i) => new { x, i }))
 			{
-				var u = world.CreateActor(tank.x, allies, mediumTankChronoSpawn.Location, Util.GetFacing(heavyTankWP.Location - mediumTankChronoSpawn.Location, 0));
+				var u = world.CreateActor(tank.x, allies, mediumTankChronoSpawn.Location, Traits.Util.GetFacing(heavyTankWP.Location - mediumTankChronoSpawn.Location, 0));
 				chronoInfo.Add(Pair.New(u, new CPos(mediumTankChronoSpawn.Location.X + tank.i, mediumTankChronoSpawn.Location.Y)));
 			}
 			RASpecialPowers.Chronoshift(world, chronoInfo, chronosphere, -1, false);
@@ -201,7 +203,7 @@ namespace OpenRA.Mods.RA.Missions
 			{
 				new OwnerInit(soviets),
 				new LocationInit(waypoints[0]),
-				new FacingInit(Util.GetFacing(waypoints[1] - waypoints[0], 0))
+				new FacingInit(Traits.Util.GetFacing(waypoints[1] - waypoints[0], 0))
 			});
 			foreach (var waypoint in waypoints)
 				m.QueueActivity(Fly.ToCell(waypoint));
@@ -210,21 +212,21 @@ namespace OpenRA.Mods.RA.Missions
 
 		void SendChinookReinforcements(CPos entry, Actor lz)
 		{
-			var chinook = world.CreateActor("tran", allies, entry, Util.GetFacing(lz.Location - entry, 0));
+			var chinook = world.CreateActor("tran", allies, entry, Traits.Util.GetFacing(lz.Location - entry, 0));
 			var cargo = chinook.Trait<Cargo>();
 
 			while (cargo.HasSpace(1))
 				cargo.Load(chinook, world.CreateActor(false, ChinookCargo.Random(world.SharedRandom), allies, null, null));
 
 			var exit = lz.Info.Traits.WithInterface<ExitInfo>().FirstOrDefault();
-			var offset = exit != null ? exit.SpawnOffsetVector : PVecInt.Zero;
+			var offset = (exit != null) ? exit.SpawnOffsetVector : WVec.Zero;
 
-			chinook.QueueActivity(new HeliFly(lz.CenterLocation + offset)); // no reservation of hpad but it's not needed
+			chinook.QueueActivity(new HeliFly(lz.CenterPosition + offset)); // no reservation of hpad but it's not needed
 			chinook.QueueActivity(new Turn(0));
-			chinook.QueueActivity(new HeliLand(false, 0));
+			chinook.QueueActivity(new HeliLand(false));
 			chinook.QueueActivity(new UnloadCargo(true));
 			chinook.QueueActivity(new Wait(150));
-			chinook.QueueActivity(new HeliFly(Util.CenterOfCell(entry)));
+			chinook.QueueActivity(new HeliFly(entry));
 			chinook.QueueActivity(new RemoveSelf());
 		}
 
@@ -234,10 +236,10 @@ namespace OpenRA.Mods.RA.Missions
 			alliedWarFactory.Trait<PrimaryBuilding>().SetPrimaryProducer(alliedWarFactory, true);
 		}
 
-		public void WorldLoaded(World w)
+		public void WorldLoaded(World w, WorldRenderer wr)
 		{
 			world = w;
-
+			worldRenderer = wr;
 			allies = w.Players.Single(p => p.InternalName == "Allies");
 			soviets = w.Players.Single(p => p.InternalName == "Soviets");
 			neutral = w.Players.Single(p => p.InternalName == "Neutral");
@@ -253,12 +255,12 @@ namespace OpenRA.Mods.RA.Missions
 			paradrop2LZ = actors["Paradrop2LZ"];
 			paradrop2Entry = actors["Paradrop2Entry"];
 
-			var t1 = actors["ViewportTarget1"];
-			var t2 = actors["ViewportTarget2"];
-			var t3 = actors["ViewportTarget3"];
-			var t4 = actors["ViewportTarget4"];
-			var t5 = actors["ViewportTarget5"];
-			viewportTargets = new[] { t1, t2, t3, t4, t5 }.Select(t => t.Location.ToInt2()).ToList();
+			var t1 = actors["ViewportTarget1"].CenterPosition;
+			var t2 = actors["ViewportTarget2"].CenterPosition;
+			var t3 = actors["ViewportTarget3"].CenterPosition;
+			var t4 = actors["ViewportTarget4"].CenterPosition;
+			var t5 = actors["ViewportTarget5"].CenterPosition;
+			viewportTargets = new[] { t1, t2, t3, t4, t5 };
 
 			offmapAttackerSpawn1 = actors["OffmapAttackerSpawn1"];
 			offmapAttackerSpawn2 = actors["OffmapAttackerSpawn2"];
@@ -297,7 +299,8 @@ namespace OpenRA.Mods.RA.Missions
 			viewportOrigin = viewportTargets[0];
 			viewportTargetNumber = 1;
 			viewportTarget = viewportTargets[1];
-			Game.viewport.Center(viewportOrigin);
+
+			wr.Viewport.Center(viewportOrigin);
 			Sound.SoundVolumeModifier = 0.1f;
 		}
 	}

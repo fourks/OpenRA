@@ -27,10 +27,16 @@
 	ProximityCaptor:
 		Types:Vehicle
 	GivesBounty:
-	#WithSmoke:
 	Repairable:
-		RepairBuildings: repair
-	DebugMuzzlePositions:
+		RepairBuildings: repaira,repairo,repairh
+	CombatDebugOverlay:
+	Guard:
+	Guardable:
+	RenderUnit:
+	BodyOrientation:
+	UpdatesPlayerStatistics:
+	Huntable:
+	LuaScriptEvents:
 
 ^Tank:
 	AppearsOnRadar:
@@ -61,10 +67,16 @@
 	ProximityCaptor:
 		Types:Tank
 	GivesBounty:
-	#WithSmoke:
 	Repairable:
-		RepairBuildings: repair
-	DebugMuzzlePositions:
+		RepairBuildings: repaira,repairo,repairh
+	CombatDebugOverlay:
+	Guard:
+	Guardable:
+	RenderUnit:
+	BodyOrientation:
+	UpdatesPlayerStatistics:
+	Huntable:
+	LuaScriptEvents:
 
 ^Husk:
 	Health:
@@ -72,6 +84,7 @@
 	Armor: 
 		Type: Light
 	Husk:
+		AllowedTerrain: Sand, Rock, Transition, Concrete, Spice, SpiceBlobs, Dune
 	HiddenUnderFog:
 	AppearsOnRadar:
 	Burns:
@@ -80,6 +93,8 @@
 		Types:Husk
 	Tooltip:
 		Name: Destroyed Tank
+	BodyOrientation:
+	LuaScriptEvents:
 
 ^TowerHusk:
 	Health:
@@ -97,6 +112,17 @@
 		Name: Destroyed Tower
 	ProximityCaptor:
 		Types:Husk
+	BodyOrientation:
+	LuaScriptEvents:
+
+^AircraftHusk:
+	Inherits: ^Husk
+	-Husk:
+	-Burns:
+	FallsToEarth:
+		Spins: False
+		Moves: True
+		Explosion: UnitExplodeScale
 
 ^Infantry:
 	AppearsOnRadar:
@@ -125,8 +151,6 @@
 		TargetTypes: Ground
 	RenderInfantry:
 	AutoTarget:
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	AttackMove:
 	Passenger:
 		CargoType: Infantry
@@ -140,11 +164,17 @@
 		Types:Infantry
 	GivesBounty:
 	CrushableInfantry:
-		CrushSound: squishy2.aud
+		CrushSound: CRUSH1.WAV
 	RepairableNear:
 		Buildings: barra, barro
 		CloseEnough: 1
-	DebugMuzzlePositions:
+	CombatDebugOverlay:
+	Guard:
+	Guardable:
+	BodyOrientation:
+	UpdatesPlayerStatistics:
+	Huntable:
+	LuaScriptEvents:
 
 ^Plane:
 	AppearsOnRadar:
@@ -160,14 +190,14 @@
 	GivesExperience:
 	DrawLineToTarget:
 	ActorLostNotification:
-	DebugAircraftFacing:
-	DebugAircraftSubPxX:
-	DebugAircraftSubPxY:
-	DebugAircraftAltitude:
 	ProximityCaptor:
 		Types:Plane
 	GivesBounty:
-	DebugMuzzlePositions:
+	CombatDebugOverlay:
+	BodyOrientation:
+	UpdatesPlayerStatistics:
+	Huntable:
+	LuaScriptEvents:
 
 ^Helicopter:
 	Inherits: ^Plane
@@ -184,15 +214,15 @@
 		Dimensions: 1,1
 		Footprint: x
 		TerrainTypes: Rock, Concrete
-		BuildSounds: BUILD1.aud
-		SellSounds: BUILD1.aud
+		BuildSounds: BUILD1.WAV
+		SellSounds: BUILD1.WAV
 		Adjacent: 3
 	GivesBuildableArea:
-	Capturable:
-	CapturableBar:
+	ExternalCapturable:
+	ExternalCapturableBar:
 	SoundOnDamageTransition:
-		DamagedSound: EXPLSML1.aud
-		DestroyedSound: EXPLHG1.aud
+		DamagedSound: EXPLSML1.WAV
+		DestroyedSound: EXPLHG1.WAV
 	RenderBuilding:
 	WithBuildingExplosion:
 	RepairableBuilding:
@@ -200,18 +230,22 @@
 		ActorTypes: rifle,rifle,rifle,rifle,rifle,bazooka,bazooka,bazooka,engineer
 	MustBeDestroyed:
 	GivesExperience:
-
 	FrozenUnderFog:
 	CaptureNotification:
 	ActorLostNotification:
 		Notification: BuildingLost
 	EditorAppearance:
 		RelativeToTopLeft: yes
-	AutoTargetIgnore:
 	ShakeOnDeath:
 	ProximityCaptor:
 		Types:Building
 	Sellable:
 	GivesBounty:
-	DebugMuzzlePositions:
-	Bib:
+	CombatDebugOverlay:
+	Guardable:
+		Range: 3
+	BodyOrientation:
+	UpdatesPlayerStatistics:
+	WithCrumbleOverlay:
+	Huntable:
+	LuaScriptEvents:

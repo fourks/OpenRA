@@ -11,7 +11,6 @@
 using System;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using OpenRA.FileFormats;
 using SharpFont;
 
@@ -31,8 +30,10 @@ namespace OpenRA.Graphics
 			glyphs = new Cache<Pair<char, Color>, GlyphInfo>(CreateGlyph, 
 			         Pair<char,Color>.EqualityComparer);
 
-			// setup a 1-channel SheetBuilder for our private use
-			if (builder == null) builder = new SheetBuilder(TextureChannel.Alpha);
+			// setup a SheetBuilder for our private use
+			// TODO: SheetBuilder state is leaked between mod switches
+			if (builder == null)
+				builder = new SheetBuilder(SheetType.BGRA);
 
 			PrecacheColor(Color.White);
 			PrecacheColor(Color.Red);
@@ -46,7 +47,7 @@ namespace OpenRA.Graphics
 					throw new InvalidOperationException();
 		}
 
-		public void DrawText (string text, float2 location, Color c)
+		public void DrawText(string text, float2 location, Color c)
 		{
 			location.Y += size;	// baseline vs top
 
@@ -84,7 +85,7 @@ namespace OpenRA.Graphics
 
 		public int2 Measure(string text)
 		{
-			return new int2((int)text.Split( '\n' ).Max( s => s.Sum(a => glyphs[Pair.New(a, Color.White)].Advance)), text.Split('\n').Count()*size);
+			return new int2((int)text.Split('\n').Max(s => s.Sum(a => glyphs[Pair.New(a, Color.White)].Advance)), text.Split('\n').Count()*size);
 		}
 
 		Cache<Pair<char,Color>, GlyphInfo> glyphs;
@@ -96,9 +97,8 @@ namespace OpenRA.Graphics
 			face.LoadGlyph(index, LoadFlags.Default, LoadTarget.Normal);
 			face.Glyph.RenderGlyph(RenderMode.Normal);
 
-			var s = builder.Allocate(
-				new Size((int)face.Glyph.Metrics.Width >> 6,
-			         (int)face.Glyph.Metrics.Height >> 6));
+			var size = new Size((int)face.Glyph.Metrics.Width >> 6, (int)face.Glyph.Metrics.Height >> 6);
+			var s = builder.Allocate(size);
 
 			var g = new GlyphInfo
 			{
@@ -128,6 +128,8 @@ namespace OpenRA.Graphics
 					p += face.Glyph.Bitmap.Pitch;
 				}
 			}
+			s.sheet.CommitData();
+
 			return g;
 		}
 

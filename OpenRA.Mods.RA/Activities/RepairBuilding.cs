@@ -8,7 +8,6 @@
  */
 #endregion
 
-using System.Linq;
 using OpenRA.Traits;
 
 namespace OpenRA.Mods.RA.Activities
@@ -21,7 +20,7 @@ namespace OpenRA.Mods.RA.Activities
 
 		public override Activity Tick(Actor self)
 		{
-			if (IsCanceled || !target.IsValid)
+			if (IsCanceled || target.Type != TargetType.Actor)
 				return NextActivity;
 
 			var health = target.Actor.Trait<Health>();

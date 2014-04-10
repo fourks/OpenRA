@@ -11,7 +11,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using OpenRA.FileFormats;
 using OpenRA.Widgets;
 
@@ -60,7 +59,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 				{
 					var item = ScrollItemWidget.Setup(template,
 						() => gameMode == ii.First,
-						() => { gameMode = ii.First; EnumerateMaps(); });
+						() => { gameMode = ii.First; EnumerateMaps(onSelect); });
 					item.Get<LabelWidget>("LABEL").GetText = () => showItem(ii);
 					return item;
 				};
@@ -83,10 +82,10 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 				randomMapButton.IsDisabled = () => visibleMaps == null || visibleMaps.Count == 0;
 			}
 
-			EnumerateMaps();
+			EnumerateMaps(onSelect);
 		}
 
-		void EnumerateMaps()
+		void EnumerateMaps(Action<Map> onSelect)
 		{
 			var maps = Game.modData.AvailableMaps
 				.Where(kv => kv.Value.Selectable)
@@ -98,7 +97,7 @@ namespace OpenRA.Mods.RA.Widgets.Logic
 			foreach (var kv in maps)
 			{
 				var m = kv.Value;
-				var item = ScrollItemWidget.Setup(kv.Key, itemTemplate, () => m == map, () => map = m);
+				var item = ScrollItemWidget.Setup(kv.Key, itemTemplate, () => m == map, () => map = m, () => { Ui.CloseWindow(); onSelect(m); });
 
 				var titleLabel = item.Get<LabelWidget>("TITLE");
 				titleLabel.GetText = () => m.Title;

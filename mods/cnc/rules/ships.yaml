@@ -4,7 +4,6 @@ BOAT:
 		Cost: 300
 	Tooltip:
 		Name: Gunboat
-		Icon: boaticnh
 	Health:
 		HP: 700
 	Armor:
@@ -24,11 +23,12 @@ BOAT:
 		LocalOffset: 213,-180,0, 213,128,0, 213,0,0
 	AttackTurreted:
 	RenderGunboat:
+	Selectable:
+		Bounds: 42,24
 	AutoTarget:
 		AllowMovement: false
-	DebugRetiliateAgainstAggressor:
-	DebugNextAutoTargetScanTime:
 	WithSmoke:
+	RejectsOrders:
 
 LST:
 	Inherits: ^Ship
@@ -58,7 +58,9 @@ LST:
 		Range: 7
 	RenderUnit:
 	WithRoof:
-	RenderCargo:
+	WithCargo:
+		DisplayTypes: Infantry, Vehicle
+		LocalOffset: 0,0,0, -390,-256,0, 390,-256,0, -390,256,0, 390,256,0
 	-Selectable:
 	Cargo:
 		Types: Infantry, Vehicle
@@ -66,4 +68,4 @@ LST:
 		PipCount: 5
 	AttackMove:
 		JustMove: true
-
+	RejectsOrders:

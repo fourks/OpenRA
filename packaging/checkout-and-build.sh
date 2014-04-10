@@ -14,7 +14,6 @@ msg () {
 }
 
 TAG=$1
-
 VERSION=`echo $TAG | grep -o "[0-9]\\+-\\?[0-9]\\?"`
 
 _gitroot="git://github.com/OpenRA/OpenRA.git"
@@ -60,6 +59,12 @@ if [ ! -d ~/openra-package/packages/ ] ; then
 fi
 
 ./package-all.sh $TAG ~/openra-package/packages/
+
+echo "Downloading source code packages from GitHub..."
+curl -s -L -o "$HOME/openra-package/packages/$TAG.tar.gz" "https://github.com/OpenRA/OpenRA/archive/$TAG.tar.gz"
+if [ $? -ne 0 ]; then
+    echo "Source code package download failed."
+fi
 
 ./upload-all.sh $TAG ~/openra-package/packages
 

@@ -22,7 +22,7 @@ namespace OpenRA.Mods.RA.Orders
 		readonly Actor Producer;
 		readonly string Building;
 		readonly BuildingInfo BuildingInfo;
-		IEnumerable<Renderable> preview;
+		IEnumerable<IRenderable> preview;
 		Sprite buildOk, buildBlocked;
 		bool initialized = false;
 
@@ -68,15 +68,15 @@ namespace OpenRA.Mods.RA.Orders
 		}
 
 		public void Tick(World world) {}
-		public void RenderAfterWorld(WorldRenderer wr, World world) {}
-		public void RenderBeforeWorld(WorldRenderer wr, World world)
+		public IEnumerable<IRenderable> Render(WorldRenderer wr, World world) { yield break; }
+		public void RenderAfterWorld(WorldRenderer wr, World world)
 		{
-			var position = Game.viewport.ViewToWorld(Viewport.LastMousePos);
+			var position = wr.Position(wr.Viewport.ViewToWorldPx(Viewport.LastMousePos)).ToCPos();
 			var topLeft = position - FootprintUtils.AdjustForBuildingSize(BuildingInfo);
 
 			var actorInfo = Rules.Info[Building];
 			foreach (var dec in actorInfo.Traits.WithInterface<IPlaceBuildingDecoration>())
-				dec.Render(wr, world, actorInfo, Traits.Util.CenterOfCell(position));	/* hack hack */
+				dec.Render(wr, world, actorInfo, position.CenterPosition);	/* hack hack */
 
 			var cells = new Dictionary<CPos, bool>();
 			// Linebuild for walls.
@@ -98,10 +98,9 @@ namespace OpenRA.Mods.RA.Orders
 					initialized = true;
 				}
 
+				var offset = topLeft.CenterPosition + FootprintUtils.CenterOffset(BuildingInfo) - WPos.Zero;
 				foreach (var r in preview)
-					r.Sprite.DrawAt(topLeft.ToPPos().ToFloat2() + r.Pos,
-									r.Palette.Index,
-									r.Scale*r.Sprite.size);
+					r.OffsetBy(offset).Render(wr);
 
 				var res = world.WorldActor.Trait<ResourceLayer>();
 				var isCloseEnough = BuildingInfo.IsCloseEnoughToBase(world, world.LocalPlayer, Building, topLeft);
@@ -109,8 +108,13 @@ namespace OpenRA.Mods.RA.Orders
 					cells.Add(t, isCloseEnough && world.IsCellBuildable(t, BuildingInfo) && res.GetResource(t) == null);
 			}
 
+			var pal = wr.Palette("terrain");
 			foreach (var c in cells)
-				(c.Value ? buildOk : buildBlocked).DrawAt(wr, c.Key.ToPPos().ToFloat2(), "terrain");
+			{
+				var tile = c.Value ? buildOk : buildBlocked;
+				new SpriteRenderable(tile, c.Key.CenterPosition,
+					WVec.Zero, -511, pal, 1f, true).Render(wr);
+			}
 		}
 
 		public string GetCursor(World world, CPos xy, MouseInput mi) { return "default"; }

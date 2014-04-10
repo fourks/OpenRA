@@ -27,7 +27,10 @@ namespace OpenRA.Mods.RA.Activities
 
 		public override Activity Tick(Actor self)
 		{
-			if (IsCanceled || !target.IsValid)
+			if (IsCanceled || !target.IsValidFor(self))
+				return NextActivity;
+
+			if (target.Type != TargetType.Actor)
 				return NextActivity;
 
 			if (!Util.AdjacentCells(target).Any(c => c == self.Location))
@@ -35,10 +38,10 @@ namespace OpenRA.Mods.RA.Activities
 
 			// Move to the middle of the target, ignoring impassable tiles
 			var mobile = self.Trait<Mobile>();
-			var to = target.CenterLocation;
-			var from = self.CenterLocation;
+			var to = target.CenterPosition;
+			var from = self.CenterPosition;
 			var speed = mobile.MovementSpeedForCell(self, self.Location);
-			var length = speed > 0 ? (int)((to - from).Length * 3 / speed) : 0;
+			var length = speed > 0 ? (to - from).Length / speed : 0;
 
 			return Util.SequenceActivities(
 				new Turn(Util.GetFacing(to - from, mobile.Facing)),

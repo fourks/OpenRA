@@ -19,24 +19,28 @@ namespace OpenRA.Mods.RA
 	{
 		public readonly int FacingTolerance = 1;
 
-		public override object Create( ActorInitializer init ) { return new AttackFrontal( init.self, this ); }
+		public override object Create(ActorInitializer init) { return new AttackFrontal(init.self, this); }
 	}
 
 	public class AttackFrontal : AttackBase
 	{
 		readonly AttackFrontalInfo info;
-		public AttackFrontal(Actor self, AttackFrontalInfo info)
-			: base( self ) { this.info = info; }
 
-		protected override bool CanAttack( Actor self, Target target )
+		public AttackFrontal(Actor self, AttackFrontalInfo info)
+			: base(self)
 		{
-			if( !base.CanAttack( self, target ) )
+			this.info = info;
+		}
+
+		protected override bool CanAttack(Actor self, Target target)
+		{
+			if (!base.CanAttack(self, target))
 				return false;
 
 			var facing = self.Trait<IFacing>().Facing;
-			var facingToTarget = Util.GetFacing(target.CenterLocation - self.CenterLocation, facing);
+			var facingToTarget = Util.GetFacing(target.CenterPosition - self.CenterPosition, facing);
 
-			if( Math.Abs( facingToTarget - facing ) % 256 > info.FacingTolerance )
+			if (Math.Abs(facingToTarget - facing) % 256 > info.FacingTolerance)
 				return false;
 
 			return true;
@@ -44,10 +48,13 @@ namespace OpenRA.Mods.RA
 
 		public override Activity GetAttackActivity(Actor self, Target newTarget, bool allowMove)
 		{
-			var weapon = ChooseArmamentForTarget(newTarget);
-			if (weapon == null)
+			var a = ChooseArmamentForTarget(newTarget);
+			if (a == null)
 				return null;
-			return new Activities.Attack(newTarget, Math.Max(0, (int)weapon.Weapon.Range), allowMove);
+
+			// TODO: Define weapon ranges as WRange
+			var range = new WRange(Math.Max(0,(int)(1024*a.Weapon.Range)));
+			return new Activities.Attack(newTarget, range, allowMove);
 		}
 	}
 }

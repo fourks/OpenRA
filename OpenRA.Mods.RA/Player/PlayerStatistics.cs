@@ -58,7 +58,7 @@ namespace OpenRA.Mods.RA
 			var total = (double)world.Map.Bounds.Width * world.Map.Bounds.Height;
 			MapControl = world.Actors
 				.Where(a => !a.IsDead() && a.IsInWorld && a.Owner == player && a.HasTrait<RevealsShroud>())
-				.SelectMany(a => world.FindTilesInCircle(a.Location, a.Trait<RevealsShroud>().RevealRange.Clamp(0, 50)))
+				.SelectMany(a => world.FindTilesInCircle(a.Location, a.Trait<RevealsShroud>().Range.Clamp(0, 50)))
 				.Distinct()
 				.Count() / total;
 		}
@@ -90,6 +90,7 @@ namespace OpenRA.Mods.RA
 				case "StartGame":
 				case "Disconnected":
 				case "ServerError":
+				case "AuthenticationError":
 				case "SyncInfo":
 					return;
 			}
@@ -112,7 +113,7 @@ namespace OpenRA.Mods.RA
 				attackerStats.BuildingsKilled++;
 				defenderStats.BuildingsDead++;
 			}
-			else if (self.HasTrait<IMove>())
+			else if (self.HasTrait<IPositionable>())
 			{
 				attackerStats.UnitsKilled++;
 				defenderStats.UnitsDead++;
